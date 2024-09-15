@@ -1,12 +1,12 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
-import NavBar from '../components/NavBar';
+import NavBar from '../components/NavBar'; 
 
-function ParentScreen({ navigation }) {
+function ParentResourcesScreen({ navigation }) {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Home Screen</Text>
-      <NavBar navigation={navigation} /> 
+      <Text style={styles.text}>Parent Resources Screen</Text>
+      <NavBar navigation={navigation} />
     </View>
   );
 }
@@ -23,4 +23,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ParentScreen;
+export default ParentResourcesScreen;
