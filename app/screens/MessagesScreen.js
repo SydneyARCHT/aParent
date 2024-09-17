@@ -1,12 +1,11 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
-import NavBar from '../components/NavBar'; 
+
 
 function MessagesScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <Text style={styles.text}>Messages Screen</Text>
-      <NavBar navigation={navigation} /> 
     </View>
   );
 }

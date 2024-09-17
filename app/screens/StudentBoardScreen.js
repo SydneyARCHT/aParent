@@ -1,12 +1,11 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
-import NavBar from '../components/NavBar'; 
+
 
 function StudentBoardScreen({ navigation }) {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Student Board Screen</Text>
-      <NavBar navigation={navigation} /> 
+      <Text style={styles.text}>Student Resources Screen</Text>
     </View>
   );
 }

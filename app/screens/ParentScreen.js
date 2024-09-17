@@ -1,12 +1,10 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
-import NavBar from '../components/NavBar';
 
 function ParentScreen({ navigation }) {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Home Screen</Text>
-      <NavBar navigation={navigation} /> 
+      <Text style={styles.text}>Parent/Home Screen</Text>
     </View>
   );
 }
