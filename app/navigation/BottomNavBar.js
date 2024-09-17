@@ -30,7 +30,7 @@ function MyTabs() {
         options={{
           tabBarLabel: 'Messages',
           tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="bell" color={color} size={26} />
+            <MaterialCommunityIcons name="message-processing" color={color} size={26} />
           ),
         }}
       />
@@ -38,9 +38,9 @@ function MyTabs() {
         name="StudentBoard"
         component={StudentBoardScreen}
         options={{
-          tabBarLabel: 'StudentBoard',
+          tabBarLabel: 'Student           Board',
           tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="account" color={color} size={26} />
+            <MaterialCommunityIcons name="account-heart" color={color} size={26} />
           ),
         }}
       />
@@ -48,9 +48,9 @@ function MyTabs() {
         name="ParentResources"
         component={ParentResourcesScreen}
         options={{
-          tabBarLabel: 'ParentResources',
+          tabBarLabel: 'Parent     Resources',
           tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="book" color={color} size={26} /> 
+            <MaterialCommunityIcons name="account-child-circle" color={color} size={26} /> 
           ),
         }}
       />
