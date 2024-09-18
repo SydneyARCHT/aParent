@@ -10,7 +10,7 @@ const theme = {
   },
 };
 
-const MyComponent = () => (
+const CardComponent = () => (
   <PaperProvider theme={theme}>
     <Card style={styles.card}>
       <Card.Cover source={{ uri: 'https://picsum.photos/id/17/700' }} />
@@ -34,4 +34,4 @@ const styles = StyleSheet.create({
     },
   });
   
-  export default MyComponent;
+  export default CardComponent;

@@ -1,12 +1,10 @@
-
-import React from "react";
-import { NavigationContainer } from "@react-navigation/native";
-import { createStackNavigator } from "@react-navigation/stack";
-import WelcomeScreen from "./app/screens/WelcomeScreen";
-import LoginScreen from "./app/screens/LoginScreen";
-import MyTabs from "./app/navigation/BottomNavBar"; 
-import TeacherScreen from "./app/screens/TeacherScreen"; 
-
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import WelcomeScreen from './app/screens/WelcomeScreen';
+import LoginScreen from './app/screens/LoginScreen';
+import MyTabs from './app/navigation/BottomNavBar';
+import TeacherScreen from './app/screens/TeacherScreen';
 
 const Stack = createStackNavigator();
 
