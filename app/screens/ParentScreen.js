@@ -5,9 +5,7 @@ import DrawerComponent from '../navigation/DrawerComponent';
 import CardComponent from '../components/CardComponent'; 
 import FakeComp1 from '../components/FakeComp1';
 import FakeComp2 from '../components/FakeComp2';
-import MessagesScreen from '../screens/MessagesScreen';
-import StudentBoardScreen from '../screens/StudentBoardScreen';
-import ParentResourcesScreen from '../screens/ParentResourceScreen';
+
 
 const Drawer = createDrawerNavigator();
 
@@ -30,10 +28,7 @@ function ParentScreenContent() {
 function ParentScreen() {
   return (
     <Drawer.Navigator drawerContent={(props) => <DrawerComponent {...props} />}>
-      <Drawer.Screen name="ParentHome" component={ParentScreenContent} />
-      <Drawer.Screen name="Messages" component={MessagesScreen} />
-      <Drawer.Screen name="StudentBoard" component={StudentBoardScreen} />
-      <Drawer.Screen name="ParentResources" component={ParentResourcesScreen} />
+      <Drawer.Screen name="Parent Home" component={ParentScreenContent} />
     </Drawer.Navigator>
   );
 }

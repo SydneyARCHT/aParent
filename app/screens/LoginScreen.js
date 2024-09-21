@@ -1,64 +1,110 @@
-import React from "react";
-import { StyleSheet, View, Text, ImageBackground, Image } from "react-native";
-import AppButton from "../components/AppButton";
-import colors from "../config/colors";
+import React, { useState } from "react";
+import { StyleSheet, Text, View, Button, TextInput, Image, SafeAreaView, TouchableOpacity, StatusBar, Alert } from "react-native";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../config/firebaseConfig";
 
-function LoginScreen({ navigation }) {
-  return (
-    <ImageBackground
-      blurRadius={2}
-      style={styles.background}
-      source={require("../assets/Hallways.jpg")} 
-    >
-      <Image style={styles.logo} source={require("../assets/LogoTEMP.png")} />
+export default function RegisterScreen({ navigation }) {
+
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+  
+    const onHandleLogin = () => {
+      if (email !== "" && password !== "") {
+        signInWithEmailAndPassword(auth, email, password)
+          .then(() => {
+            console.log("Login success");
+            navigation.navigate("Parent"); 
+          })
+          .catch((err) => Alert.alert("Login error", err.message));
+      } else {
+        Alert.alert("Input Error", "Please fill in both fields.");
+      }
+    };
+    
+    return (
       <View style={styles.container}>
-        <Text style={styles.heading}>Login</Text>
-        <View style={styles.buttonsContainer}>
-          <AppButton
-            title="Login as Teacher"
-            color="primary"
-            onPress={() => navigation.navigate("Teacher")}
-          />
-          <AppButton
-            title="Login as Parent"
-            color="secondary"
-            onPress={() => navigation.navigate("Parent")}
-          />
+        <View style={styles.whiteSheet} />
+        <SafeAreaView style={styles.form}>
+          <Text style={styles.title}>Log In</Text>
+           <TextInput
+          style={styles.input}
+          placeholder="Enter email"
+          autoCapitalize="none"
+          keyboardType="email-address"
+          textContentType="emailAddress"
+          value={email}
+          onChangeText={(text) => setEmail(text)}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Enter password"
+          autoCapitalize="none"
+          autoCorrect={false}
+          secureTextEntry={true}
+          textContentType="password"
+          value={password}
+          onChangeText={(text) => setPassword(text)}
+        />
+        <TouchableOpacity style={styles.button} onPress={onHandleLogin}>
+          <Text style={{fontWeight: 'bold', color: '#fff', fontSize: 18}}> Log In</Text>
+        </TouchableOpacity>
+        <View style={{marginTop: 20, flexDirection: 'row', alignItems: 'center', alignSelf: 'center'}}>
+          <Text style={{color: 'gray', fontWeight: '600', fontSize: 14}}>Don't have an account? </Text>
+          <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+            <Text style={{color: '#e91e63', fontWeight: '600', fontSize: 14}}> Sign Up</Text>
+          </TouchableOpacity>
         </View>
+        </SafeAreaView>
+        <StatusBar barStyle="light-content" />
       </View>
-    </ImageBackground>
-  );
-}
-
-const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    width: "100%",
-    paddingHorizontal: 20,
-  },
-  heading: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: colors.white,
-    marginBottom: 20,
-  },
-  logo: {
-    width: 150,
-    height: 150,
-    position: "absolute",
-    top: 160,
-  },
-  buttonsContainer: {
-    width: "100%",
-    paddingHorizontal: 20,
-  },
-});
-
-export default LoginScreen;
+    );
+  }
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: "#fff",
+    },
+    title: {
+      fontSize: 36,
+      fontWeight: 'bold',
+      color: "#e91e63",
+      alignSelf: "center",
+      paddingBottom: 24,
+    },
+    input: {
+      backgroundColor: "#F6F7FB",
+      height: 58,
+      marginBottom: 20,
+      fontSize: 16,
+      borderRadius: 10,
+      padding: 12,
+    },
+    backImage: {
+      width: "100%",
+      height: 340,
+      position: "absolute",
+      top: 0,
+      resizeMode: 'cover',
+    },
+    whiteSheet: {
+      width: '100%',
+      height: '75%',
+      position: "absolute",
+      bottom: 0,
+      backgroundColor: '#fff',
+      borderTopLeftRadius: 60,
+    },
+    form: {
+      flex: 1,
+      justifyContent: 'center',
+      marginHorizontal: 30,
+    },
+    button: {
+      backgroundColor: '#e91e63',
+      height: 58,
+      borderRadius: 10,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: 40,
+    },
+  });

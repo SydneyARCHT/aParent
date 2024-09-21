@@ -12,7 +12,7 @@ function WelcomeScreen({ navigation }) {
       <Image style={styles.logo} source={require("../assets/LogoTEMP.png")} />
       <View style={styles.buttonsContainer}>
       <AppButton title="Login" color="primary" onPress={() => navigation.navigate("Login")} /> 
-      <AppButton title="Register" color="secondary" /> 
+      <AppButton title="Register" color="secondary" onPress={() => navigation.navigate("Register")} /> 
       </View>
     </ImageBackground>
     

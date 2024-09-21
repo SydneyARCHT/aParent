@@ -5,7 +5,7 @@ import { StyleSheet, View, Text } from 'react-native';
 function StudentBoardScreen({ navigation }) {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Student Resources Screen</Text>
+      <Text style={styles.text}>Grades Screen</Text>
     </View>
   );
 }

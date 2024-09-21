@@ -28,7 +28,7 @@ const DrawerComponent = ({ navigation }) => {
           <Drawer.Item
             label="Log Out"
             onPress={() => {
-              navigation.navigate('Login'); 
+              navigation.navigate('Welcome'); 
             }}
           />
         </Drawer.Section>
