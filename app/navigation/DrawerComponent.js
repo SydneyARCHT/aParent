@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Drawer } from 'react-native-paper';
 import { ScrollView, StyleSheet, SafeAreaView } from 'react-native';
+import WelcomeScreen from '../screens/WelcomeScreen';
 
 const DrawerComponent = ({ navigation }) => {  
   const [active, setActive] = React.useState('');

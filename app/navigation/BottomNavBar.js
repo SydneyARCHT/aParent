@@ -2,8 +2,8 @@ import { createMaterialBottomTabNavigator } from '@react-navigation/material-bot
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import ParentScreen from '../screens/ParentScreen';
 import MessagesScreen from '../screens/MessagesScreen';
-import GradesScreen from '../screens/GradesScreen'
 import ParentResourcesScreen from '../screens/ParentResourceScreen';
+import StudentBoardStack from './StudentBoardStack';
 
 const Tab = createMaterialBottomTabNavigator();
 
@@ -35,10 +35,10 @@ function MyTabs() {
         }}
       />
       <Tab.Screen
-        name="StudentBoard"
-        component={GradesScreen}
+        name="StudentStack"
+        component={StudentBoardStack}
         options={{
-          tabBarLabel: 'Grades',
+          tabBarLabel: 'Children',
           tabBarIcon: ({ color }) => (
             <MaterialCommunityIcons name="abacus" color={color} size={26} />
           ),
@@ -48,7 +48,7 @@ function MyTabs() {
         name="ParentResources"
         component={ParentResourcesScreen}
         options={{
-          tabBarLabel: 'Parent     Resources',
+          tabBarLabel: 'Resources',
           tabBarIcon: ({ color }) => (
             <MaterialCommunityIcons name="account-child-circle" color={color} size={26} /> 
           ),
