@@ -4,8 +4,6 @@ import { StyleSheet, SafeAreaView, FlatList } from 'react-native';
 import Chat from './ChatScreen';
 
 function MessagesScreen() {
-
-
   return (
     <SafeAreaView style={styles.container}>
       <Chat /> 
