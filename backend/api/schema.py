@@ -1,16 +1,60 @@
 import graphene
 import graphql_jwt
+from graphene_django.types import DjangoObjectType
+from django.contrib.auth import get_user_model, authenticate, login
 from graphql_jwt.decorators import login_required
-from graphene_django import DjangoObjectType
+from graphql_jwt.shortcuts import get_token
 from .models import (
     User, Student, Parent, Teacher, Class, ParentStudent, ClassStudent, 
     AssignmentType, Assignment, Grade, Event, EventRegistration, EventPayment, 
     EventForm, FormSignature
 )
+from .util import token_required, encode_token, encode_refresh_token
+
 
 class UserType(DjangoObjectType):
     class Meta:
         model = User
+        fields = ('id', 'email', 'userType')
+    
+    groups = graphene.List(graphene.String)
+    user_permissions = graphene.List(graphene.String)
+
+    def resolve_groups(self, info):
+        return [group.name for group in self.groups.all()]
+
+    def resolve_user_permissions(self, info):
+        return [perm.codename for perm in self.user_permissions.all()]
+    
+
+    
+class LoginMutation(graphene.Mutation):
+    class Arguments:
+        email = graphene.String(required=True)
+        password = graphene.String(required=True)
+        
+    user = graphene.Field(UserType)
+    access_token = graphene.String()
+    refresh_token = graphene.String()
+    
+    def mutate(self, info, email, password):
+        user = authenticate(username=email, password=password)
+        if user is None:
+            raise Exception('Invalid Credentials')
+        
+        login(info.context, user)
+        access_token = encode_token(user.id, user.userType)
+        refresh_token = encode_refresh_token(user.id, user.userType)
+        return LoginMutation(user=user, access_token=access_token, refresh_token=refresh_token)
+    
+class Logout(graphene.Mutation):
+    success = graphene.Boolean()
+
+    @token_required
+    def mutate(self, info):
+        info.context.user.auth_token.delete()
+        return Logout(success=True)
+
 
 class StudentType(DjangoObjectType):
     class Meta:
@@ -69,7 +113,7 @@ class FormSignatureType(DjangoObjectType):
     class Meta:
         model = FormSignature
 
-# Define CRUD mutations for each model
+
 class CreateStudent(graphene.Mutation):
     class Arguments:
         student_name = graphene.String(required=True)
@@ -77,7 +121,7 @@ class CreateStudent(graphene.Mutation):
 
     student = graphene.Field(StudentType)
 
-    @login_required
+    @token_required
     def mutate(self, info, student_name, student_grade):
         student = Student(student_name=student_name, student_grade=student_grade)
         student.save()
@@ -91,7 +135,7 @@ class UpdateStudent(graphene.Mutation):
 
     student = graphene.Field(StudentType)
 
-    @login_required
+    @token_required
     def mutate(self, info, student_id, student_name=None, student_grade=None):
         student = Student.objects.get(pk=student_id)
         if student_name:
@@ -107,31 +151,43 @@ class DeleteStudent(graphene.Mutation):
 
     success = graphene.Boolean()
     
-    @login_required
+    @token_required
     def mutate(self, info, student_id):
         student = Student.objects.get(pk=student_id)
         student.delete()
         return DeleteStudent(success=True)
 
-# Repeat similar CRUD mutations for other models
+
 class CreateUser(graphene.Mutation):
     class Arguments:
         email = graphene.String(required=True)
         password = graphene.String(required=True)
-        user_type = graphene.String(required=True)
+        userType = graphene.String(required=True)
+        name = graphene.String(required=True)
 
     user = graphene.Field(UserType)
     success = graphene.Boolean()
     message = graphene.String()
+    token = graphene.String()
 
-    def mutate(self, info, email, password, user_type):
+    def mutate(self, info, email, password, userType, name):
         if User.objects.filter(email=email).exists():
-            return CreateUser(success=False, message="Email Already exists")
-        
-        user = User(email=email, password=password, user_type=user_type)
-        user.save()
-        return CreateUser(user=user, success=True, message="User created successfully")
+            return CreateUser(success=False, message="Email already exists")
 
+        normalized_user_type = userType.lower()
+        user = User.objects.create_user(email=email, password=password, userType=normalized_user_type)
+        
+        if normalized_user_type == "parent":
+            create_parent_mutation = CreateParent()
+            create_parent_mutation.mutate(info, parent_name=name, user_id=user.id)
+        elif normalized_user_type == "teacher":
+            create_teacher_mutation = CreateTeacher()
+            create_teacher_mutation.mutate(info, teacher_name=name, user_id=user.id)
+
+        token = get_token(user)
+        return CreateUser(user=user, success=True, message="User created successfully", token=token)
+    
+    
 class UpdateUser(graphene.Mutation):
     class Arguments:
         user_id = graphene.ID(required=True)
@@ -141,7 +197,7 @@ class UpdateUser(graphene.Mutation):
 
     user = graphene.Field(UserType)
 
-    @login_required
+    @token_required
     def mutate(self, info, user_id, email=None, password=None, user_type=None):
         user = User.objects.get(pk=user_id)
         if email:
@@ -159,7 +215,7 @@ class DeleteUser(graphene.Mutation):
 
     success = graphene.Boolean()
 
-    @login_required
+    @token_required
     def mutate(self, info, user_id):
         user = User.objects.get(pk=user_id)
         user.delete()
@@ -187,7 +243,7 @@ class UpdateParent(graphene.Mutation):
 
     parent = graphene.Field(ParentType)
 
-    @login_required
+    @token_required
     def mutate(self, info, parent_id, parent_name=None):
         parent = Parent.objects.get(pk=parent_id)
         if parent_name:
@@ -201,7 +257,7 @@ class DeleteParent(graphene.Mutation):
 
     success = graphene.Boolean()
 
-    @login_required
+    @token_required
     def mutate(self, info, parent_id):
         parent = Parent.objects.get(pk=parent_id)
         parent.delete()
@@ -225,7 +281,7 @@ class UpdateTeacher(graphene.Mutation):
 
     teacher = graphene.Field(TeacherType)
 
-    @login_required
+    @token_required
     def mutate(self, info, teacher_id, teacher_name=None):
         teacher = Teacher.objects.get(pk=teacher_id)
         if teacher_name:
@@ -239,7 +295,7 @@ class DeleteTeacher(graphene.Mutation):
 
     success = graphene.Boolean()
 
-    @login_required
+    @token_required
     def mutate(self, info, teacher_id):
         teacher = Teacher.objects.get(pk=teacher_id)
         teacher.delete()
@@ -252,7 +308,7 @@ class CreateClass(graphene.Mutation):
 
     class_obj = graphene.Field(ClassType)
 
-    @login_required
+    @token_required
     def mutate(self, info, class_name, teacher_id):
         teacher = Teacher.objects.get(pk=teacher_id)
         class_obj = Class(class_name=class_name, teacher=teacher)
@@ -267,7 +323,7 @@ class UpdateClass(graphene.Mutation):
 
     class_obj = graphene.Field(ClassType)
 
-    @login_required
+    @token_required
     def mutate(self, info, class_id, class_name=None, teacher_id=None):
         class_obj = Class.objects.get(pk=class_id)
         if class_name:
@@ -284,7 +340,7 @@ class DeleteClass(graphene.Mutation):
 
     success = graphene.Boolean()
 
-    @login_required
+    @token_required
     def mutate(self, info, class_id):
         class_obj = Class.objects.get(pk=class_id)
         class_obj.delete()
@@ -297,7 +353,7 @@ class CreateParentStudent(graphene.Mutation):
 
     parent_student = graphene.Field(ParentStudentType)
 
-    @login_required
+    @token_required
     def mutate(self, info, parent_id, student_id):
         parent = Parent.objects.get(pk=parent_id)
         student = Student.objects.get(pk=student_id)
@@ -312,51 +368,13 @@ class DeleteParentStudent(graphene.Mutation):
 
     success = graphene.Boolean()
 
-    @login_required
+    @token_required
     def mutate(self, info, parent_id, student_id):
         parent_student = ParentStudent.objects.get(parent_id=parent_id, student_id=student_id)
         parent_student.delete()
         return DeleteParentStudent(success=True)
 
-class CreateMessage(graphene.Mutation):
-    class Arguments:
-        sender_user_id = graphene.ID(required=True)
-        receiver_user_id = graphene.ID(required=True)
-        message_content = graphene.String(required=True)
 
-    message = graphene.Field(MessageType)
-
-    @login_required
-    def mutate(self, info, sender_user_id, receiver_user_id, message_content):
-        sender_user = User.objects.get(pk=sender_user_id)
-        receiver_user = User.objects.get(pk=receiver_user_id)
-        message = Message(sender_user=sender_user, receiver_user=receiver_user, message_content=message_content)
-        message.save()
-        return CreateMessage(message=message)
-
-class CreateConversation(graphene.Mutation):
-    conversation = graphene.Field(ConversationType)
-
-
-    @login_required
-    def mutate(self, info):
-        conversation = Conversation()
-        conversation.save()
-        return CreateConversation(conversation=conversation)
-
-class CreateConversationParticipant(graphene.Mutation):
-    class Arguments:
-        conversation_id = graphene.ID(required=True)
-        user_id = graphene.ID(required=True)
-
-    conversation_participant = graphene.Field(ConversationParticipantType)
-
-    def mutate(self, info, conversation_id, user_id):
-        conversation = Conversation.objects.get(pk=conversation_id)
-        user = User.objects.get(pk=user_id)
-        conversation_participant = ConversationParticipant(conversation=conversation, user=user)
-        conversation_participant.save()
-        return CreateConversationParticipant(conversation_participant=conversation_participant)
 
 
 class CreateClassStudent(graphene.Mutation):
@@ -394,7 +412,7 @@ class CreateAssignment(graphene.Mutation):
 
     assignment = graphene.Field(AssignmentType)
 
-    @login_required
+    @token_required
     def mutate(self, info, class_id, type_id, assignment_name, due_date):
         class_obj = Class.objects.get(pk=class_id)
         type_obj = AssignmentType.objects.get(pk=type_id)
@@ -411,7 +429,7 @@ class CreateGrade(graphene.Mutation):
 
     grade_obj = graphene.Field(GradeType)
 
-    @login_required
+    @token_required
     def mutate(self, info, student_id, assignment_id, grade, feedback=None):
         student = Student.objects.get(pk=student_id)
         assignment = Assignment.objects.get(pk=assignment_id)
@@ -428,7 +446,7 @@ class CreateEvent(graphene.Mutation):
 
     event = graphene.Field(EventType)
 
-    @login_required
+    @token_required
     def mutate(self, info, event_name, event_description, event_date, event_fee=0.00):
         event = Event(event_name=event_name, event_description=event_description, event_date=event_date, event_fee=event_fee)
         event.save()
@@ -467,19 +485,7 @@ class CreateEventPayment(graphene.Mutation):
         event_payment = EventPayment(event=event, parent=parent, student=student, amount_paid=amount_paid, payment_status=payment_status)
         event_payment
         
-class CreateAnnouncementRecipient(graphene.Mutation):
-    class Arguments:
-        announcement_id = graphene.ID(required=True)
-        parent_id = graphene.ID(required=True)
 
-    announcement_recipient = graphene.Field(AnnouncementRecipientType)
-
-    def mutate(self, info, announcement_id, parent_id):
-        announcement = Announcement.objects.get(pk=announcement_id)
-        parent = Parent.objects.get(pk=parent_id)
-        announcement_recipient = AnnouncementRecipient(announcement=announcement, parent=parent)
-        announcement_recipient.save()
-        return CreateAnnouncementRecipient(announcement_recipient=announcement_recipient)
 
 class CreateClassStudent(graphene.Mutation):
     class Arguments:
@@ -515,7 +521,7 @@ class CreateAssignment(graphene.Mutation):
 
     assignment = graphene.Field(AssignmentType)
 
-    @login_required
+    @token_required
     def mutate(self, info, class_id, type_id, assignment_name, due_date):
         class_obj = Class.objects.get(pk=class_id)
         type_obj = AssignmentType.objects.get(pk=type_id)
@@ -532,7 +538,7 @@ class CreateGrade(graphene.Mutation):
 
     grade_obj = graphene.Field(GradeType)
 
-    @login_required
+    @token_required
     def mutate(self, info, student_id, assignment_id, grade, feedback=None):
         student = Student.objects.get(pk=student_id)
         assignment = Assignment.objects.get(pk=assignment_id)
@@ -597,7 +603,7 @@ class CreateEventForm(graphene.Mutation):
 
     event_form = graphene.Field(EventFormType)
 
-    @login_required
+    @token_required
     def mutate(self, info, event_id, form_name, form_description, form_content):
         event = Event.objects.get(pk=event_id)
         event_form = EventForm(event=event, form_name=form_name, form_description=form_description, form_content=form_content)
@@ -626,6 +632,7 @@ class CreateFormSignature(graphene.Mutation):
 class ObtainJSONWebToken(graphql_jwt.JSONWebTokenMutation):
     user = graphene.Field(UserType)
     
+    
     @classmethod
     def resolve(cls, root, info, **kwargs):
         return cls(user=info.context.user)
@@ -648,7 +655,6 @@ class Mutation(graphene.ObjectType):
     delete_class = DeleteClass.Field()
     create_parent_student = CreateParentStudent.Field()
     delete_parent_student = DeleteParentStudent.Field()
-    create_announcement_recipient = CreateAnnouncementRecipient.Field()
     create_class_student = CreateClassStudent.Field()
     create_assignment_type = CreateAssignmentType.Field()
     create_assignment = CreateAssignment.Field()
@@ -658,6 +664,11 @@ class Mutation(graphene.ObjectType):
     create_event_payment = CreateEventPayment.Field()
     create_event_form = CreateEventForm.Field()
     create_form_signature = CreateFormSignature.Field()
+    token_auth = graphql_jwt.ObtainJSONWebToken.Field()
+    verify_token = graphql_jwt.Verify.Field()
+    refresh_token = graphql_jwt.Refresh.Field()
+    login = LoginMutation.Field()
+    logout = Logout.Field()
 
 class Query(graphene.ObjectType):
     all_users = graphene.List(UserType)
@@ -666,23 +677,23 @@ class Query(graphene.ObjectType):
     all_teachers = graphene.List(TeacherType)
     all_classes = graphene.List(ClassType)
 
-    @login_required
+    @token_required
     def resolve_all_users(self, info):
         return User.objects.all()
 
-    @login_required
+    @token_required
     def resolve_all_students(self, info):
         return Student.objects.all()
 
-    @login_required
+    @token_required
     def resolve_all_parents(self, info):
         return Parent.objects.all()
 
-    @login_required
+    @token_required
     def resolve_all_teachers(self, info):
         return Teacher.objects.all()
 
-    @login_required
+    @token_required
     def resolve_all_classes(self, info):
         return Class.objects.all()
 
