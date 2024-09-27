@@ -4,6 +4,7 @@ export const Colors = {
     light: "#FFF",
     gray: "#ADB3B3",
     dark: "#4B4C4C",
+    pink: "#e91e63"
   };
   
   const tintColorLight = "#2f95dc";
