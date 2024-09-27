@@ -1,23 +1,38 @@
-import React from 'react';
-import { StyleSheet, View, Text, ScrollView, SafeAreaView } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, View, ScrollView, SafeAreaView, RefreshControl } from 'react-native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import DrawerComponent from '../navigation/DrawerComponent'; 
 import CardComponent from '../components/CardComponent'; 
-import FakeComp1 from '../components/FakeComp1';
-import FakeComp2 from '../components/FakeComp2';
-
 
 const Drawer = createDrawerNavigator();
 
 function ParentScreenContent() {
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const onRefresh = () => {
+    setIsRefreshing(true);
+    setTimeout(() => {
+      setIsRefreshing(false);
+    }, 2000);
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.scrollViewContainer}>
+      <ScrollView
+        contentContainerStyle={styles.scrollViewContainer}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            colors={['#e91e63']} 
+          />
+        }
+      >
         <View style={styles.container}>
           <View style={styles.myComponentContainer}>
             <CardComponent />
-            <FakeComp1 />
-            <FakeComp2 /> 
+            <CardComponent /> 
+            <CardComponent /> 
           </View>
         </View>
       </ScrollView>
@@ -33,7 +48,6 @@ function ParentScreen() {
   );
 }
 
-
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1, 
@@ -46,10 +60,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingBottom: 70, 
   },
-  text: {
-    fontSize: 24,
-    marginVertical: 16,
-  },
   myComponentContainer: {
     width: '100%', 
     paddingHorizontal: 1, 
@@ -58,5 +68,3 @@ const styles = StyleSheet.create({
 });
 
 export default ParentScreen;
-
-

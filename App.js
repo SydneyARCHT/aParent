@@ -9,7 +9,6 @@ import store from './app/store';
 import WelcomeScreen from './app/screens/WelcomeScreen';
 import LoginScreen from './app/screens/LoginScreen';
 import RegisterScreen from './app/screens/RegisterScreen';
-import TeacherScreen from './app/screens/TeacherScreen';
 import MyTabs from './app/navigation/BottomNavBar'; 
 
 const Stack = createStackNavigator();
@@ -37,7 +36,6 @@ function AuthStack() {
 function AppStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Teacher" component={TeacherScreen} />
       <Stack.Screen name="Parent" component={MyTabs} />
     </Stack.Navigator>
   );

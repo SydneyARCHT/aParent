@@ -1,10 +1,22 @@
 import * as React from 'react';
 import { Drawer } from 'react-native-paper';
-import { ScrollView, StyleSheet, SafeAreaView } from 'react-native';
-import WelcomeScreen from '../screens/WelcomeScreen';
+import { ScrollView, StyleSheet, SafeAreaView, Alert } from 'react-native';
+import { signOut } from 'firebase/auth';
+import { auth } from '../config/firebaseConfig'; 
 
 const DrawerComponent = ({ navigation }) => {  
   const [active, setActive] = React.useState('');
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      Alert.alert('Logged Out', 'You have been logged out successfully.');
+      navigation.navigate('Welcome'); 
+    } catch (error) {
+      console.error('Error signing out: ', error);
+      Alert.alert('Logout Error', 'There was an issue logging out. Please try again.');
+    }
+  };
 
   return (
     <SafeAreaView style={styles.drawerContainer}>
@@ -28,9 +40,7 @@ const DrawerComponent = ({ navigation }) => {
           />
           <Drawer.Item
             label="Log Out"
-            onPress={() => {
-              navigation.navigate('Welcome'); 
-            }}
+            onPress={handleLogout}
           />
         </Drawer.Section>
       </ScrollView>
