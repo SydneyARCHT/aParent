@@ -1,12 +1,13 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
+import ResourcesScreen from './ResourcesScreen';
 
 
 
 function ParentResourcesScreen({ navigation }) {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Parent Resources Screen</Text>
+      <ResourcesScreen />
     </View>
   );
 }
@@ -14,9 +15,6 @@ function ParentResourcesScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingBottom: 60, 
   },
   text: {
     fontSize: 24,

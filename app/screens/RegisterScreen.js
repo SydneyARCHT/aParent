@@ -18,7 +18,7 @@ export default function Signup({ navigation }) {
       createUserWithEmailAndPassword(auth, email, password)
         .then(() => {
           Alert.alert("Sign Up Successful", "You have successfully signed up!", [
-            { text: "OK", onPress: () => navigation.navigate("Home") } // Change "Home" to your front page screen
+            { text: "OK", onPress: () => navigation.navigate("Home") } 
           ]);
         })
         .catch((err) => Alert.alert("Sign Up Error", err.message));
