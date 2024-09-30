@@ -1,21 +1,39 @@
 import React, { useState } from "react";
 import { StyleSheet, Text, View, Button, TextInput, Image, SafeAreaView, TouchableOpacity, StatusBar, Alert } from "react-native";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../config/firebaseConfig";
+import { auth, database } from "../config/firebaseConfig";
+import { doc, getDoc } from "firebase/firestore";
 
 export default function RegisterScreen({ navigation }) {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
   
-    const onHandleLogin = () => {
+    const onHandleLogin = async () => {
       if (email !== "" && password !== "") {
-        signInWithEmailAndPassword(auth, email, password)
-          .then(() => {
-            console.log("Login success");
-            navigation.navigate("Parent"); 
-          })
-          .catch((err) => Alert.alert("Login error", err.message));
+        try {
+          const userCredential = await signInWithEmailAndPassword(auth, email, password);
+          const user = userCredential.user;
+  
+          const userDoc = await getDoc(doc(database, "users", user.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            console.log("Login success", userData);
+  
+            // Navigate based on user type
+            if (userData.userType === "parent") {
+              navigation.navigate("Parent");
+            } else if (userData.userType === "teacher") {
+              navigation.navigate("Teacher");
+            } else {
+              Alert.alert("Login error", "Unknown user type.");
+            }
+          } else {
+            Alert.alert("Login error", "User data not found.");
+          }
+        } catch (err) {
+          Alert.alert("Login error", err.message);
+        }
       } else {
         Alert.alert("Input Error", "Please fill in both fields.");
       }

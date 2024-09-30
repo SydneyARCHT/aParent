@@ -3,6 +3,8 @@ import { StyleSheet, View } from 'react-native';
 import { Button, Card, Text, Provider as PaperProvider, DefaultTheme, ActivityIndicator } from 'react-native-paper';
 import { useState, useEffect } from 'react';
 
+
+
 const theme = {
   ...DefaultTheme,
   colors: {
@@ -10,6 +12,8 @@ const theme = {
     primary: '#e91e63',
   },
 };
+
+
 
 const CardComponent = () => {
   const [data, setData] = useState(null);

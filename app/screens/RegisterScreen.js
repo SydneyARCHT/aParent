@@ -1,27 +1,53 @@
 import React, { useState } from "react";
 import { StyleSheet, Text, View, TextInput, SafeAreaView, TouchableOpacity, StatusBar, Alert } from "react-native";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../config/firebaseConfig";
+import { auth, database } from "../config/firebaseConfig";
+import { doc, setDoc } from 'firebase/firestore'
+import { Picker } from '@react-native-picker/picker';
 
 export default function Signup({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [userType, setUserType] = useState('parent');
 
-  const onHandleSignup = () => {
+  const onHandleSignup = async () => {
     if (email !== '' && password !== '' && confirmPassword !== '') {
       if (password !== confirmPassword) {
         Alert.alert("Password Error", "Passwords do not match.");
         return;
       }
 
-      createUserWithEmailAndPassword(auth, email, password)
-        .then(() => {
-          Alert.alert("Sign Up Successful", "You have successfully signed up!", [
-            { text: "OK", onPress: () => navigation.navigate("Home") } 
-          ]);
-        })
-        .catch((err) => Alert.alert("Sign Up Error", err.message));
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // Create user document
+        await setDoc(doc(database, "users", user.uid), {
+          email: user.email,
+          is_active: true,
+          name: user.displayName || "Anonymous",
+          userType: userType
+        });
+
+        if (userType === 'parent') {
+          await setDoc(doc(database, "parents", user.uid), {
+            name: user.displayName || "Anonymous",
+            user_id: user.uid
+          });
+        } else if (userType === 'teacher') {
+          await setDoc(doc(database, "teachers", user.uid), {
+            name: user.displayName || "Anonymous",
+            user_id: user.uid
+          });
+        }
+
+        Alert.alert("Sign Up Successful", "You have successfully signed up!", [
+          { text: "OK", onPress: () => navigation.navigate("Home") } // Change "Home" to your front page screen
+        ]);
+      } catch (err) {
+        Alert.alert("Sign Up Error", err.message);
+      }
     } else {
       Alert.alert("Input Error", "Please fill in all fields.");
     }
@@ -61,6 +87,14 @@ export default function Signup({ navigation }) {
           value={confirmPassword}
           onChangeText={(text) => setConfirmPassword(text)}
         />
+        <Picker
+          selectedValue={userType}
+          style={styles.input}
+          onValueChange={(itemValue) => setUserType(itemValue)}
+        >
+          <Picker.Item label="Parent" value="parent" />
+          <Picker.Item label="Teacher" value="teacher" />
+        </Picker>
         <TouchableOpacity style={styles.button} onPress={onHandleSignup}>
           <Text style={{ fontWeight: 'bold', color: '#fff', fontSize: 18 }}>Register</Text>
         </TouchableOpacity>
