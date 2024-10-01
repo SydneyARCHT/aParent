@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Card, Text, useTheme } from 'react-native-paper';
@@ -19,19 +18,28 @@ function StudentBoardScreen() {
             <Text style={styles.cardText}>Grades</Text>
           </Card.Content>
         </Card>
-        <Card style={[styles.card, { backgroundColor: colors.primary }]}>
+        <Card
+          style={[styles.card, { backgroundColor: colors.primary }]}
+          onPress={() => navigation.navigate('Behavior')} 
+        >
           <Card.Content>
             <Text style={styles.cardText}>Behavior</Text>
           </Card.Content>
         </Card>
       </View>
       <View style={styles.row}>
-        <Card style={[styles.card, { backgroundColor: colors.primary }]}>
+        <Card
+          style={[styles.card, { backgroundColor: colors.primary }]}
+          onPress={() => navigation.navigate('Attendance')} 
+        >
           <Card.Content>
             <Text style={styles.cardText}>Attendance</Text>
           </Card.Content>
         </Card>
-        <Card style={[styles.card, { backgroundColor: colors.primary }]}>
+        <Card
+          style={[styles.card, { backgroundColor: colors.primary }]}
+          onPress={() => navigation.navigate('Assignments')}
+        >
           <Card.Content>
             <Text style={styles.cardText}>Assignments</Text>
           </Card.Content>

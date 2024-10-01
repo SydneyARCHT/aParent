@@ -29,6 +29,6 @@ app.get('/', async (req, res) => {
 
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, '10.0.0.3', () => {
+app.listen(PORT, '192.168.0.234', () => {
   console.log(`Server is running on port ${PORT}`);
 });
