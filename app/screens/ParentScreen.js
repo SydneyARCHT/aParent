@@ -176,7 +176,7 @@ function ParentScreenContent() {
 const ParentScreen = () => {
   return (
     <Drawer.Navigator drawerContent={props => <DrawerComponent {...props} />}>
-      <Drawer.Screen name="ParentScreenContent" component={ParentScreenContent} />
+      <Drawer.Screen name="Home" component={ParentScreenContent} />
     </Drawer.Navigator>
   );
 };

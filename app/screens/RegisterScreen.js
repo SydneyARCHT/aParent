@@ -17,34 +17,36 @@ export default function Signup({ navigation }) {
         Alert.alert("Password Error", "Passwords do not match.");
         return;
       }
-
+  
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
-
-        // Create user document
+  
+        // Create user document in Firestore
         await setDoc(doc(database, "users", user.uid), {
           email: user.email,
           is_active: true,
           name: user.displayName || "Anonymous",
           userType: userType
         });
-
+  
         if (userType === 'parent') {
           await setDoc(doc(database, "parents", user.uid), {
             name: user.displayName || "Anonymous",
             user_id: user.uid
           });
+  
+          navigation.navigate("Parent"); 
         } else if (userType === 'teacher') {
           await setDoc(doc(database, "teachers", user.uid), {
             name: user.displayName || "Anonymous",
             user_id: user.uid
           });
+  
+          navigation.navigate("Teacher"); 
         }
-
-        Alert.alert("Sign Up Successful", "You have successfully signed up!", [
-          { text: "OK", onPress: () => navigation.navigate("Home") } // Change "Home" to your front page screen
-        ]);
+  
+        Alert.alert("Sign Up Successful", "You have successfully signed up!");
       } catch (err) {
         Alert.alert("Sign Up Error", err.message);
       }
@@ -87,14 +89,16 @@ export default function Signup({ navigation }) {
           value={confirmPassword}
           onChangeText={(text) => setConfirmPassword(text)}
         />
-        <Picker
-          selectedValue={userType}
-          style={styles.input}
-          onValueChange={(itemValue) => setUserType(itemValue)}
-        >
-          <Picker.Item label="Parent" value="parent" />
-          <Picker.Item label="Teacher" value="teacher" />
-        </Picker>
+        <View style={{ marginBottom: 80 }}>
+          <Picker
+            selectedValue={userType}
+            style={styles.input}
+            onValueChange={(itemValue) => setUserType(itemValue)}
+          >
+            <Picker.Item label="Parent" value="parent" />
+            <Picker.Item label="Teacher" value="teacher" />
+          </Picker>
+        </View>
         <TouchableOpacity style={styles.button} onPress={onHandleSignup}>
           <Text style={{ fontWeight: 'bold', color: '#fff', fontSize: 18 }}>Register</Text>
         </TouchableOpacity>

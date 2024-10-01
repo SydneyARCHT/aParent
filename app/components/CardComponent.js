@@ -29,10 +29,10 @@ const CardComponent = ({ data }) => {
 
 const styles = StyleSheet.create({
   card: {
-    margin: 15,
+    margin: 1,
   },
   content: {
-    paddingVertical: 16,
+    paddingVertical: 10,
   },
 });
 
