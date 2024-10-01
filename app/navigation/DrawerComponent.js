@@ -3,26 +3,27 @@ import { useState, useEffect } from 'react';
 import { Drawer } from 'react-native-paper';
 import { ScrollView, StyleSheet, SafeAreaView, Alert, View, Text, Image } from 'react-native';
 import { signOut } from 'firebase/auth';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, doc, getDoc } from 'firebase/firestore';
 import { auth, database } from '../config/firebaseConfig';
 
 const DrawerComponent = ({ navigation }) => {
   const [active, setActive] = useState('');
-  const [parentName, setParentName] = useState('');
+  const [parentFirstName, setParentFirstName] = useState('');
   const [parentAvatar, setParentAvatar] = useState('');
 
   useEffect(() => {
     const fetchParentData = async () => {
       const user = auth.currentUser;
       if (user) {
-        const userQuery = query(collection(database, 'users'), where('email', '==', user.email));
-        const userSnapshot = await getDocs(userQuery);
-        if (!userSnapshot.empty) {
-          const userDoc = userSnapshot.docs[0];
-          const userData = userDoc.data();
+        const userDocRef = doc(database, 'users', user.uid); 
+        const userDocSnap = await getDoc(userDocRef);
+        
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
           if (userData.userType === 'parent') {
-            setParentName(userData.name);
-            setParentAvatar(userData.avatar || 'https://i.pravatar.cc/300'); // Default avatar if none is provided
+            const firstName = userData.name.split(' ')[0];
+            setParentFirstName(firstName || 'Parent'); 
+            setParentAvatar(userData.avatar || 'https://i.pravatar.cc/300'); // Use a default avatar if none is set
           }
         }
       }
@@ -48,10 +49,10 @@ const DrawerComponent = ({ navigation }) => {
         <Drawer.Section style={styles.drawerSection}>
           <View style={styles.userInfoSection}>
             <Image source={{ uri: parentAvatar }} style={styles.avatar} />
-            <Text style={styles.title}>{parentName}</Text>
+            <Text style={styles.title}>{parentFirstName}</Text>
           </View>
           <Drawer.Item
-            label="First Item"
+            label="Profile"
             active={active === 'first'}
             onPress={() => {
               setActive('first');
@@ -59,7 +60,7 @@ const DrawerComponent = ({ navigation }) => {
             }}
           />
           <Drawer.Item
-            label="Second Item"
+            label="Account Settings"
             active={active === 'second'}
             onPress={() => {
               setActive('second');

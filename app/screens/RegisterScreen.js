@@ -2,50 +2,57 @@ import React, { useState } from "react";
 import { StyleSheet, Text, View, TextInput, SafeAreaView, TouchableOpacity, StatusBar, Alert } from "react-native";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, database } from "../config/firebaseConfig";
-import { doc, setDoc } from 'firebase/firestore'
-import { Picker } from '@react-native-picker/picker';
+import { doc, setDoc } from 'firebase/firestore';
+import DropDownPicker from 'react-native-dropdown-picker';
 
 export default function Signup({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [open, setOpen] = useState(false);
   const [userType, setUserType] = useState('parent');
-  
+  const [items, setItems] = useState([
+    { label: 'Parent', value: 'parent' },
+    { label: 'Teacher', value: 'teacher' }
+  ]);
+
   const onHandleSignup = async () => {
-    if (email !== '' && password !== '' && confirmPassword !== '') {
+    if (email !== '' && password !== '' && confirmPassword !== '' && firstName !== '' && lastName !== '') {
       if (password !== confirmPassword) {
         Alert.alert("Password Error", "Passwords do not match.");
         return;
       }
-  
+
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
-  
+
         // Create user document in Firestore
         await setDoc(doc(database, "users", user.uid), {
           email: user.email,
           is_active: true,
-          name: user.displayName || "Anonymous",
+          name: `${firstName} ${lastName}`,
           userType: userType
         });
-  
+
         if (userType === 'parent') {
           await setDoc(doc(database, "parents", user.uid), {
-            name: user.displayName || "Anonymous",
+            name: `${firstName} ${lastName}`,
             user_id: user.uid
           });
-  
-          navigation.navigate("Parent"); 
+
+          navigation.navigate("Parent");
         } else if (userType === 'teacher') {
           await setDoc(doc(database, "teachers", user.uid), {
-            name: user.displayName || "Anonymous",
+            name: `${firstName} ${lastName}`,
             user_id: user.uid
           });
-  
-          navigation.navigate("Teacher"); 
+
+          navigation.navigate("Teacher");
         }
-  
+
         Alert.alert("Sign Up Successful", "You have successfully signed up!");
       } catch (err) {
         Alert.alert("Sign Up Error", err.message);
@@ -60,6 +67,21 @@ export default function Signup({ navigation }) {
       <View style={styles.whiteSheet} />
       <SafeAreaView style={styles.form}>
         <Text style={styles.title}>Register</Text>
+        
+        <TextInput
+          style={styles.input}
+          placeholder="First Name"
+          value={firstName}
+          onChangeText={(text) => setFirstName(text)}
+        />
+        
+        <TextInput
+          style={styles.input}
+          placeholder="Last Name"
+          value={lastName}
+          onChangeText={(text) => setLastName(text)}
+        />
+
         <TextInput
           style={styles.input}
           placeholder="Enter email"
@@ -69,6 +91,7 @@ export default function Signup({ navigation }) {
           value={email}
           onChangeText={(text) => setEmail(text)}
         />
+
         <TextInput
           style={styles.input}
           placeholder="Enter password"
@@ -79,6 +102,7 @@ export default function Signup({ navigation }) {
           value={password}
           onChangeText={(text) => setPassword(text)}
         />
+
         <TextInput
           style={styles.input}
           placeholder="Confirm password"
@@ -89,19 +113,23 @@ export default function Signup({ navigation }) {
           value={confirmPassword}
           onChangeText={(text) => setConfirmPassword(text)}
         />
+
         <View style={{ marginBottom: 80 }}>
-          <Picker
-            selectedValue={userType}
+          <DropDownPicker
+            open={open}
+            value={userType}
+            items={items}
+            setOpen={setOpen}
+            setValue={setUserType}
+            setItems={setItems}
             style={styles.input}
-            onValueChange={(itemValue) => setUserType(itemValue)}
-          >
-            <Picker.Item label="Parent" value="parent" />
-            <Picker.Item label="Teacher" value="teacher" />
-          </Picker>
+          />
         </View>
+
         <TouchableOpacity style={styles.button} onPress={onHandleSignup}>
           <Text style={{ fontWeight: 'bold', color: '#fff', fontSize: 18 }}>Register</Text>
         </TouchableOpacity>
+
         <View style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', alignSelf: 'center' }}>
           <Text style={{ color: 'gray', fontWeight: '600', fontSize: 14 }}>Already have an account? </Text>
           <TouchableOpacity onPress={() => navigation.navigate("Login")}>

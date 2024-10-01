@@ -10,7 +10,7 @@ function AppDrawer() {
     <Drawer.Navigator drawerContent={props => <DrawerComponent {...props} />}>
       <Drawer.Screen name="FirstScreen" component={FirstScreen} />
       <Drawer.Screen name="SecondScreen" component={SecondScreen} />
-      <Drawer.Screen name="Welcome" component={WelcomeScreen} />
+      {/* <Drawer.Screen name="Welcome" component={WelcomeScreen} /> */}
     </Drawer.Navigator>
   );
 }
