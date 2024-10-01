@@ -10,7 +10,7 @@ export default function Signup({ navigation }) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [userType, setUserType] = useState('parent');
-
+  
   const onHandleSignup = async () => {
     if (email !== '' && password !== '' && confirmPassword !== '') {
       if (password !== confirmPassword) {
