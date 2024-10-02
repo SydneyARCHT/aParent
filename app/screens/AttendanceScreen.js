@@ -1,23 +1,36 @@
 import React from "react";
-import { StyleSheet, View, Text } from "react-native";
+import { StyleSheet, View, SafeAreaView } from "react-native";
+import { CalendarList } from 'react-native-calendars'; 
 
-function AttendanceScreen() {
+
+function AssignmentsScreen() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Attendance Screen</Text>
-    </View>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <CalendarList
+          horizontal={true}
+          pagingEnabled={true}
+          calendarWidth={320}
+          minDate={'2024-08-01'} 
+          maxDate={'2025-05-31'} 
+          pastScrollRange={2} 
+          futureScrollRange={9} 
+          showScrollIndicator={true} 
+        />
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1, 
+  },
   container: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
-  text: {
-    fontSize: 24,
-  },
 });
 
-export default AttendanceScreen;
+export default AssignmentsScreen;
