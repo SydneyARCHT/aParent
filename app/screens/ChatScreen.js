@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView } from 'react-native';
+import React, { useState, useLayoutEffect, useCallback } from 'react';
+import { GiftedChat } from 'react-native-gifted-chat';
+import { collection, addDoc, orderBy, query, onSnapshot } from 'firebase/firestore';
 import { auth, database } from '../config/firebaseConfig';
 import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 

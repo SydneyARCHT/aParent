@@ -1,43 +1,35 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, View, Button, TextInput, Image, SafeAreaView, TouchableOpacity, StatusBar, Alert } from "react-native";
+import { StyleSheet, Text, View, TextInput, SafeAreaView, TouchableOpacity, StatusBar, Alert } from "react-native";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth, database } from "../config/firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
 
-export default function RegisterScreen({ navigation }) {
+export default function RegisterScreen() {
 
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-  
-    const onHandleLogin = async () => {
-      if (email !== "" && password !== "") {
-        try {
-          const userCredential = await signInWithEmailAndPassword(auth, email, password);
-          const user = userCredential.user;
-  
-          const userDoc = await getDoc(doc(database, "users", user.uid));
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            console.log("Login success", userData);
-  
-            // Navigate based on user type
-            if (userData.userType === "parent") {
-              navigation.navigate("Parent");
-            } else if (userData.userType === "teacher") {
-              navigation.navigate("Teacher");
-            } else {
-              Alert.alert("Login error", "Unknown user type.");
-            }
-          } else {
-            Alert.alert("Login error", "User data not found.");
-          }
-        } catch (err) {
-          Alert.alert("Login error", err.message);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const onHandleLogin = async () => {
+    if (email !== "" && password !== "") {
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        const userDoc = await getDoc(doc(database, "users", user.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          console.log("Login success", userData);
+          Alert.alert("Success", "Login successful!"); 
+        } else {
+          Alert.alert("Error", "No user document found."); 
         }
-      } else {
-        Alert.alert("Input Error", "Please fill in both fields.");
+      } catch (error) {
+        Alert.alert("Login Error", error.message); 
       }
-    };
+    } else {
+      Alert.alert("Input Error", "Please enter email and password."); 
+    }
+  };
     
     return (
       <View style={styles.container}>

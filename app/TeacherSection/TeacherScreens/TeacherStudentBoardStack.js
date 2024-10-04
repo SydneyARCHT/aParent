@@ -1,10 +1,10 @@
 import React from "react";
 import { StyleSheet, View, Text } from "react-native";
 
-function TeacherScreen() {
+function TeacherStudentBoardStackScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Teacher Screen</Text>
+      <Text style={styles.text}>Teacher Student Board Screen</Text>
     </View>
   );
 }
@@ -20,4 +20,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default TeacherScreen;
+export default TeacherStudentBoardStackScreen;

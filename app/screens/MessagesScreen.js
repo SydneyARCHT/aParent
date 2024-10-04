@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { StyleSheet, SafeAreaView, FlatList } from 'react-native';
+import { StyleSheet, SafeAreaView } from 'react-native';
 import Chat from './ChatScreen';
 
 function MessagesScreen() {

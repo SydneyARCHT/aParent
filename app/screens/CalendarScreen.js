@@ -5,7 +5,6 @@ import moment from 'moment';
 import { collection, getDocs, query, where, orderBy, doc, getDoc } from 'firebase/firestore';
 import { auth, database } from '../config/firebaseConfig';
 import CardComponent from '../components/CardComponent';
-import MessageCardComponent from '../components/MessageCardComponent';
 import GradeCardComponent from '../components/GradeCardComponent';
 import AttendanceCardComponent from '../components/AttendanceCardComponent';
 
