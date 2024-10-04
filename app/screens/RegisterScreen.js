@@ -5,7 +5,7 @@ import { auth, database } from "../config/firebaseConfig";
 import { doc, setDoc } from 'firebase/firestore';
 import DropDownPicker from 'react-native-dropdown-picker';
 
-export default function Signup({ navigation }) {
+export default function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -37,20 +37,17 @@ export default function Signup({ navigation }) {
           userType: userType
         });
 
+        // Add to specific user type collection (parent or teacher)
         if (userType === 'parent') {
           await setDoc(doc(database, "parents", user.uid), {
             name: `${firstName} ${lastName}`,
             user_id: user.uid
           });
-
-          navigation.navigate("Parent");
         } else if (userType === 'teacher') {
           await setDoc(doc(database, "teachers", user.uid), {
             name: `${firstName} ${lastName}`,
             user_id: user.uid
           });
-
-          navigation.navigate("Teacher");
         }
 
         Alert.alert("Sign Up Successful", "You have successfully signed up!");
