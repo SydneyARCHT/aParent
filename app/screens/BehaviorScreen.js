@@ -7,7 +7,6 @@ const BehaviorScreen = () => {
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <Text style={styles.title}>Behavior</Text>
 
-        {/* First Row (Top Rounded Sections) */}
         <View style={styles.row}>
           <View style={[styles.quadrant, styles.topLeft]}>
             <Text style={styles.quadrantTitle}>Positive Mindset</Text>
@@ -19,7 +18,6 @@ const BehaviorScreen = () => {
           </View>
         </View>
 
-        {/* Second Row (Bottom Square Sections) */}
         <View style={styles.row}>
           <View style={[styles.quadrant, styles.bottomLeft]}>
             <Text style={styles.quadrantTitle}>Community Mindset</Text>

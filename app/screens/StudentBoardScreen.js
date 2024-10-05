@@ -2,8 +2,12 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Card, Text, useTheme } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import DrawerComponent from '../navigation/DrawerComponent';
 
-function StudentBoardScreen() {
+const Drawer = createDrawerNavigator();
+
+function StudentBoardScreenContent() {
   const navigation = useNavigation();
   const { colors } = useTheme();
 
@@ -71,5 +75,13 @@ const styles = StyleSheet.create({
     color: 'white',
   },
 });
+
+const StudentBoardScreen = () => {
+  return (
+    <Drawer.Navigator drawerContent={props => <DrawerComponent {...props} />}>
+      <Drawer.Screen name="Children" component={StudentBoardScreenContent} />
+    </Drawer.Navigator>
+  );
+};
 
 export default StudentBoardScreen;

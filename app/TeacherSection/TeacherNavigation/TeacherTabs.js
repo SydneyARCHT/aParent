@@ -1,10 +1,13 @@
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
 import MessagesScreen from '../../screens/MessagesScreen';
 import ParentResourcesScreen from '../../screens/ParentResourceScreen';
-import ManageScreen from '../TeacherScreens/ManageScreen';
 import TeacherScreen from '../TeacherScreens/TeacherScreen';
 import TeacherStudentBoardStackScreen from '../TeacherScreens/TeacherStudentBoardStack';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import CreateAssignmentScreen from '../TeacherScreens/CreateAssignmentScreen';
+import ManageScreen from '../TeacherScreens/ManageScreen';
+import ManageStack from './ManageStack';
+
 
 const Tab = createMaterialBottomTabNavigator();
 
@@ -36,12 +39,12 @@ function TeacherTabs() {
         }}
       />
       <Tab.Screen
-        name="Manage"
-        component={ManageScreen}
+        name="ManageStack"
+        component={ManageStack}
         options={{
           tabBarLabel: 'Manage',
           tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="clipboard-edit" color={color} size={26} />
+            <MaterialCommunityIcons name="text-box-plus" color={color} size={26} />
           ),
         }}
       />
