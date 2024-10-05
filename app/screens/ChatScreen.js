@@ -1,64 +1,84 @@
-import React, { useState, useLayoutEffect, useCallback } from 'react';
-import { GiftedChat } from 'react-native-gifted-chat';
-import { collection, addDoc, orderBy, query, onSnapshot } from 'firebase/firestore';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, SafeAreaView } from 'react-native';
 import { auth, database } from '../config/firebaseConfig';
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 
+function ChatScreen({ navigation }) {
+  const [chats, setChats] = useState([]);
+  const user = auth.currentUser;
 
-export default function Chat() {
+  useEffect(() => {
+    if (user) {
+      fetchChats();
+    }
+  }, [user]);
 
-    const [messages, setMessages] = useState([]);
+  // Fetch all chats where the parent_id matches the reference of the current user's parent document
+  const fetchChats = async () => {
+    try {
+      // Create a reference to the parent document using the logged-in user's ID
+      const parentRef = doc(database, 'parents', user.uid);
+      const chatsRef = collection(database, 'chats');
+      
+      // Query for chats where the parent_id matches the logged-in user's reference
+      const q = query(chatsRef, where('parent_id', '==', parentRef));
+      const snapshot = await getDocs(q);
 
-    useLayoutEffect(() => {
+      const chatDataArray = await Promise.all(
+        snapshot.docs.map(async (doc) => {
+          const chatData = doc.data();
+          let teacherName = 'Unknown Teacher';
 
-        const collectionRef = collection(database, 'chats');
-        const q = query(collectionRef, orderBy('createdAt', 'desc'));
+          // Fetch teacher name if available
+          if (chatData.teacher_id) {
+            try {
+              const teacherDoc = await getDoc(chatData.teacher_id);
+              if (teacherDoc.exists()) {
+                teacherName = teacherDoc.data().name || 'Unknown Teacher';
+              }
+            } catch (error) {
+              console.error('Error fetching teacher data:', error);
+            }
+          }
 
-    const unsubscribe = onSnapshot(q, querySnapshot => {
-        console.log('querySnapshot unsusbscribe');
-          setMessages(
-            querySnapshot.docs.map(doc => ({
-              _id: doc.data()._id,
-              createdAt: doc.data().createdAt.toDate(),
-              text: doc.data().text,
-              user: doc.data().user
-            }))
-          );
-        });
-    return unsubscribe;
-      }, []);
-
-    const onSend = useCallback((messages = []) => {
-        setMessages(previousMessages =>
-          GiftedChat.append(previousMessages, messages)
-        );
-        const { _id, createdAt, text, user } = messages[0];    
-        addDoc(collection(database, 'chats'), {
-          _id,
-          createdAt,
-          text,
-          user
-        });
-      }, []);
-
-      return (
-        <GiftedChat
-          messages={messages}
-          showAvatarForEveryMessage={false}
-          showUserAvatar={false}
-          onSend={messages => onSend(messages)}
-          messagesContainerStyle={{
-            backgroundColor: '#fff'
-          }}
-          textInputStyle={{
-            backgroundColor: '#fff',
-            borderRadius: 20,
-          }}
-          user={{
-            _id: auth?.currentUser?.email,
-            avatar: 'https://i.pravatar.cc/300'
-          }}
-        />
+          return {
+            id: doc.id,
+            teacherName,
+            ...chatData,
+          };
+        })
       );
+
+      setChats(chatDataArray);
+    } catch (error) {
+      console.error('Error fetching chats:', error);
+    }
+  };
+
+  return (
+    <SafeAreaView style={{ flex: 1 }}>
+      <View>
+        {chats.length > 0 ? (
+          chats.map((chat, index) => (
+            <TouchableOpacity
+              key={index}
+              onPress={() => navigation.navigate('ChatDetails', { chatId: chat.id, teacherName: chat.teacherName })}
+            >
+              <View style={{ padding: 15, borderBottomWidth: 1, borderColor: '#ccc' }}>
+                <Text style={{ fontSize: 18, fontWeight: 'bold' }}>
+                  {`Chat with ${chat.teacherName ? chat.teacherName : 'Unknown Teacher'}`}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ))
+        ) : (
+          <View>
+            <Text>No chats available</Text>
+          </View>
+        )}
+      </View>
+    </SafeAreaView>
+  );
 }
 
- 
+export default ChatScreen;

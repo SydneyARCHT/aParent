@@ -1,6 +1,7 @@
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import ParentScreen from '../screens/ParentScreen';
+import ChatStackNavigator from './ChatStackNavigator';
 import MessagesScreen from '../screens/MessagesScreen';
 import ParentResourcesScreen from '../screens/ParentResourceScreen';
 import StudentBoardStack from './StudentBoardStack';
@@ -26,7 +27,7 @@ function MyTabs() {
       />
       <Tab.Screen
         name="Messages"
-        component={MessagesScreen}
+        component={ChatStackNavigator}
         options={{
           tabBarLabel: 'Messages',
           tabBarIcon: ({ color }) => (

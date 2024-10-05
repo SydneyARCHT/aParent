@@ -22,6 +22,7 @@ function ParentScreenContent() {
 
     try {
       const parentDocRef = doc(database, 'parents', parentId);
+      // Get students associated with the parent
       const parentStudentQuery = query(collection(database, 'parent_student'), where('parent', '==', parentDocRef));
       const parentStudentSnapshot = await getDocs(parentStudentQuery);
       const studentRefs = parentStudentSnapshot.docs.map(doc => doc.data().student).filter(ref => ref);
@@ -32,7 +33,7 @@ function ParentScreenContent() {
         return;
       }
 
-      // Fetch class references
+      // Get class_student documents where student reference matches
       const classStudentQuery = query(collection(database, 'class_student'), where('student', 'in', studentRefs));
       const classStudentSnapshot = await getDocs(classStudentQuery);
       const classRefs = classStudentSnapshot.docs.map(doc => doc.data().class).filter(ref => ref);
@@ -43,7 +44,7 @@ function ParentScreenContent() {
         return;
       }
 
-      // Fetch assignments
+      // Fetch assignments for those classes
       const assignmentsQuery = query(
         collection(database, 'assignments'),
         where('class', 'in', classRefs),
@@ -57,7 +58,7 @@ function ParentScreenContent() {
         timestamp: doc.data().date_created || { seconds: 0, nanoseconds: 0 }
       }));
 
-      // Fetch messages
+      // Fetch messages for the parent
       const chatsQuery = query(collection(database, 'chats'), where('parent_id', '==', parentDocRef));
       const chatsSnapshot = await getDocs(chatsQuery);
       const allMessages = [];
@@ -65,6 +66,7 @@ function ParentScreenContent() {
       for (const chatDoc of chatsSnapshot.docs) {
         const messagesQuery = query(
           collection(database, 'chats', chatDoc.id, 'messages'),
+          where('receiver_id', '==', parentDocRef),
           orderBy('timestamp', 'desc')
         );
         const messagesSnapshot = await getDocs(messagesQuery);
@@ -92,7 +94,7 @@ function ParentScreenContent() {
         allMessages.push(...newMessages);
       }
 
-      // Fetch grades
+      // Fetch grades for those students
       const gradesQuery = query(collection(database, 'grades'), where('student', 'in', studentRefs));
       const gradesSnapshot = await getDocs(gradesQuery);
       const newGrades = await Promise.all(gradesSnapshot.docs.map(async doc => {
@@ -112,7 +114,7 @@ function ParentScreenContent() {
         };
       }));
 
-      // Fetch attendance
+      // Fetch attendance for those students
       const attendanceQuery = query(collection(database, 'attendance'), where('student', 'in', studentRefs));
       const attendanceSnapshot = await getDocs(attendanceQuery);
       const newAttendance = await Promise.all(attendanceSnapshot.docs.map(async doc => {
@@ -153,16 +155,13 @@ function ParentScreenContent() {
     const fetchParentId = async () => {
       const user = auth.currentUser;
       if (user) {
-        console.log('User:', user);
         const userQuery = query(collection(database, 'users'), where('email', '==', user.email));
         const userSnapshot = await getDocs(userQuery);
         if (!userSnapshot.empty) {
           const userDoc = userSnapshot.docs[0];
           const userData = userDoc.data();
-          console.log('User Data:', userData);
           if (userData.userType === 'parent') {
             setParentId(userDoc.id);
-            console.log('Parent ID:', userDoc.id);
           }
         }
       }

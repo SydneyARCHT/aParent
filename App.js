@@ -12,6 +12,8 @@ import LoginScreen from './app/screens/LoginScreen';
 import RegisterScreen from './app/screens/RegisterScreen';
 import MyTabs from './app/navigation/BottomNavBar'; 
 import TeacherTabs from './app/TeacherSection/TeacherNavigation/TeacherTabs';
+import ChatStackNavigator from './app/navigation/ChatStackNavigator';
+
 
 // Create a stack navigator
 const Stack = createStackNavigator();
