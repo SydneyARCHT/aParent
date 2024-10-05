@@ -1,109 +1,59 @@
-import React, { useState, useLayoutEffect, useCallback } from 'react';
-import { GiftedChat } from 'react-native-gifted-chat';
-import { collection, addDoc, orderBy, query, onSnapshot } from 'firebase/firestore';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, SafeAreaView } from 'react-native';
 import { auth, database } from '../config/firebaseConfig';
-import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 
-export default function ChatScreen({ navigation }) {
+function ChatScreen({ navigation }) {
   const [chats, setChats] = useState([]);
-  const [parentId, setParentId] = useState(null);
+  const user = auth.currentUser;
 
   useEffect(() => {
-    // Fetch the parent ID based on the logged-in user
-    const fetchParentId = async () => {
-      const user = auth.currentUser;
-      if (user) {
-        try {
-          console.log('Fetching parent ID for user:', user.email);
-          const userQuery = query(collection(database, 'users'), where('email', '==', user.email));
-          const userSnapshot = await getDocs(userQuery);
+    if (user) {
+      fetchChats();
+    }
+  }, [user]);
 
-          if (!userSnapshot.empty) {
-            const userDoc = userSnapshot.docs[0];
-            const userData = userDoc.data();
-            console.log('User data:', userData);
-            if (userData.userType === 'parent') {
-              setParentId(userDoc.id);
-              console.log('Parent ID set:', userDoc.id);
-            } else {
-              console.log('User is not a parent');
-            }
-          } else {
-            console.log('No user found with the given email');
-          }
-        } catch (error) {
-          console.error('Error fetching parent ID:', error);
-        }
-      } else {
-        console.log('No user is currently logged in');
-      }
-    };
+  // Fetch all chats where the parent_id matches the reference of the current user's parent document
+  const fetchChats = async () => {
+    try {
+      // Create a reference to the parent document using the logged-in user's ID
+      const parentRef = doc(database, 'parents', user.uid);
+      const chatsRef = collection(database, 'chats');
+      
+      // Query for chats where the parent_id matches the logged-in user's reference
+      const q = query(chatsRef, where('parent_id', '==', parentRef));
+      const snapshot = await getDocs(q);
 
-    fetchParentId();
-  }, []);
+      const chatDataArray = await Promise.all(
+        snapshot.docs.map(async (doc) => {
+          const chatData = doc.data();
+          let teacherName = 'Unknown Teacher';
 
-  useEffect(() => {
-    const fetchChats = async () => {
-      if (!parentId) {
-        console.log('Parent ID is not set yet');
-        return;
-      }
-
-      try {
-        // Construct the parent reference
-        const parentRef = doc(database, 'parents', parentId);
-        console.log('Fetching chats for parent reference:', parentRef.path);
-
-        // Query the chats collection using the reference
-        const chatsQuery = query(collection(database, 'chats'), where('parent_id', '==', parentRef));
-        const chatsSnapshot = await getDocs(chatsQuery);
-
-        if (!chatsSnapshot.empty) {
-          const chatsData = await Promise.all(
-            chatsSnapshot.docs.map(async (doc) => {
-              const chatData = doc.data();
-
-              // Debugging information to check the reference
-              console.log('Chat Data:', chatData);
-
-              // Resolve the teacher's name from teacher_id reference
-              let teacherName = 'Unknown Teacher';
-              if (chatData.teacher_id) {
-                try {
-                  const teacherDoc = await getDoc(chatData.teacher_id);
-                  if (teacherDoc.exists()) {
-                    teacherName = teacherDoc.data().name;
-                    console.log('Resolved Teacher Name:', teacherName);
-                  } else {
-                    console.log('No teacher document found for reference:', chatData.teacher_id.path);
-                  }
-                } catch (error) {
-                  console.error('Error fetching teacher data:', error);
-                }
-              } else {
-                console.log('No teacher_id reference found in chat data');
+          // Fetch teacher name if available
+          if (chatData.teacher_id) {
+            try {
+              const teacherDoc = await getDoc(chatData.teacher_id);
+              if (teacherDoc.exists()) {
+                teacherName = teacherDoc.data().name || 'Unknown Teacher';
               }
+            } catch (error) {
+              console.error('Error fetching teacher data:', error);
+            }
+          }
 
-              return {
-                id: doc.id,
-                teacherName: teacherName,
-                ...chatData,
-              };
-            })
-          );
+          return {
+            id: doc.id,
+            teacherName,
+            ...chatData,
+          };
+        })
+      );
 
-          setChats(chatsData);
-          console.log('Chats data after processing:', chatsData);
-        } else {
-          console.log('No chats found for the given parent ID');
-        }
-      } catch (error) {
-        console.error('Error fetching chats:', error);
-      }
-    };
-
-    fetchChats();
-  }, [parentId]);
+      setChats(chatDataArray);
+    } catch (error) {
+      console.error('Error fetching chats:', error);
+    }
+  };
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -116,15 +66,19 @@ export default function ChatScreen({ navigation }) {
             >
               <View style={{ padding: 15, borderBottomWidth: 1, borderColor: '#ccc' }}>
                 <Text style={{ fontSize: 18, fontWeight: 'bold' }}>
-                  {`Chat with ${chat.teacherName ?? 'Unknown Teacher'}`}
+                  {`Chat with ${chat.teacherName ? chat.teacherName : 'Unknown Teacher'}`}
                 </Text>
               </View>
             </TouchableOpacity>
           ))
         ) : (
-          <Text>No chats available</Text> // Wrap the "No chats available" string inside a <Text> component
+          <View>
+            <Text>No chats available</Text>
+          </View>
         )}
       </View>
     </SafeAreaView>
   );
 }
+
+export default ChatScreen;
