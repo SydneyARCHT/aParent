@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Platform } from 'react-native';
+import { View, Platform, Image, Text } from 'react-native';
 import { GiftedChat, Bubble } from 'react-native-gifted-chat';
 import { auth, database } from '../config/firebaseConfig';
 import { collection, query, orderBy, getDocs, addDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
 
 const ChatDetails = ({ route }) => {
-  const { chatId, teacherName } = route.params; // Get the chatId and teacherName from navigation params
+  const { chatId, userName } = route.params; // Get the chatId and userName from navigation params
   const [messages, setMessages] = useState([]);
   const user = auth.currentUser;
 
@@ -26,13 +26,16 @@ const ChatDetails = ({ route }) => {
         const data = doc.data();
         const senderId = data.sender_id.id; // Extract the ID from the reference
 
+        // Strip quotation marks from the content
+        const strippedContent = data.content.replace(/^"|"$/g, '');
+
         return {
           _id: doc.id,
-          text: data.content,
+          text: strippedContent,
           createdAt: data.timestamp.toDate(),
           user: {
             _id: senderId,
-            name: data.sender_type === 'parent' ? 'Parent' : teacherName,
+            name: data.sender_type === 'parent' ? 'Parent' : userName,
           },
         };
       });
@@ -118,7 +121,7 @@ const ChatDetails = ({ route }) => {
                   backgroundColor: '#0084ff', // Customize the right bubble color (user messages)
                 },
                 left: {
-                  backgroundColor: 'white', // Customize the left bubble color (teacher messages)
+                  backgroundColor: 'white', // Customize the left bubble color (other messages)
                 },
               }}
             />

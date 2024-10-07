@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, SafeAreaView, ScrollView, Dimensions, Text } from 'react-native';
-import { ContributionGraph } from 'react-native-chart-kit';
+import { ContributionGraph, PieChart } from 'react-native-chart-kit';
 import { collection, getDocs, query, where, doc } from 'firebase/firestore';
 import { auth, database } from '../config/firebaseConfig';
 import moment from 'moment';
@@ -12,7 +12,7 @@ const chartConfig = {
   backgroundGradientFromOpacity: 0,
   backgroundGradientTo: "#ffffff",
   backgroundGradientToOpacity: 0,
-  color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+  color: (opacity = 1) => `rgba(0, 127, 0, ${opacity})`,
   strokeWidth: 2,
   barPercentage: 0.5,
   useShadowColorFromDataset: false,
@@ -75,18 +75,17 @@ function AttendanceScreen() {
           const dateString = moment(data.date.toDate()).format('YYYY-MM-DD');
           const onTimeStatus = data.on_time;
 
-          
           if (!attendanceMap[dateString]) {
-            attendanceMap[dateString] = { date: dateString, count: 0 }; 
+            attendanceMap[dateString] = { date: dateString, count: 0 };
             absentCount++;
           }
 
           if (onTimeStatus) {
-            attendanceMap[dateString].count = 2; 
+            attendanceMap[dateString].count = 2;
             onTimeCount++;
-            absentCount--; 
+            absentCount--;
           } else if (attendanceMap[dateString].count !== 2) {
-            attendanceMap[dateString].count = 1; 
+            attendanceMap[dateString].count = 1;
             lateCount++;
             absentCount--;
           }
@@ -131,24 +130,59 @@ function AttendanceScreen() {
         <View style={styles.container}>
           <ContributionGraph
             values={attendanceData}
-            endDate={moment().endOf('month').toDate()} 
-            numDays={105} 
+            endDate={moment().endOf('month').toDate()}
+            numDays={105}
             width={screenWidth}
             height={220}
             chartConfig={chartConfig}
             accessor="count"
           />
           <View style={styles.summaryContainer}>
-            <Text style={styles.summaryText}>
-              The student was on time to class {attendanceSummary.onTime} times in the last 3 months ({attendanceSummary.onTimePercentage}% of the time).
-            </Text>
-            <Text style={styles.summaryText}>
-              They were late {attendanceSummary.late} times ({attendanceSummary.latePercentage}% of the time).
-            </Text>
-            <Text style={styles.summaryText}>
-              They were absent {attendanceSummary.absent} times ({attendanceSummary.absentPercentage}% of the time).
-            </Text>
+            <Text style={styles.summaryHeader}>Attendance Summary</Text>
+            <View style={styles.card}>
+              <Text style={styles.summaryText}>
+                The student was on time to class {attendanceSummary.onTime} times in the last 3 months ({attendanceSummary.onTimePercentage}% of the time).
+              </Text>
+              <Text style={styles.summaryText}>
+                They were late {attendanceSummary.late} times ({attendanceSummary.latePercentage}% of the time).
+              </Text>
+              <Text style={styles.summaryText}>
+                They were absent {attendanceSummary.absent} times ({attendanceSummary.absentPercentage}% of the time).
+              </Text>
+            </View>
           </View>
+          <PieChart
+            data={[
+              {
+                name: 'On Time',
+                population: attendanceSummary.onTime,
+                color: '#4CAF50',
+                legendFontColor: '#333',
+                legendFontSize: 14,
+              },
+              {
+                name: 'Late',
+                population: attendanceSummary.late,
+                color: '#FFC107',
+                legendFontColor: '#333',
+                legendFontSize: 14,
+              },
+              {
+                name: 'Absent',
+                population: attendanceSummary.absent,
+                color: '#F44336',
+                legendFontColor: '#333',
+                legendFontSize: 14,
+              },
+            ]}
+            width={screenWidth}
+            height={220}
+            chartConfig={chartConfig}
+            accessor="population"
+            backgroundColor="transparent"
+            paddingLeft="15"
+            absolute
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -170,6 +204,23 @@ const styles = StyleSheet.create({
   summaryContainer: {
     marginTop: 20,
     paddingHorizontal: 16,
+  },
+  summaryHeader: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  card: {
+    backgroundColor: '#ffffff',
+    padding: 20,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+    marginBottom: 20,
   },
   summaryText: {
     fontSize: 16,

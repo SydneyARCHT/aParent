@@ -42,7 +42,8 @@
     "react-native-web": "~0.19.12",
     "react-redux": "^9.1.2",
     "recyclerlistview": "^4.2.1",
-    "redux": "^5.0.1"
+    "redux": "^5.0.1",
+    "expo-linear-gradient": "~13.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.25.7"

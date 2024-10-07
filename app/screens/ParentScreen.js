@@ -22,13 +22,18 @@ function ParentScreenContent() {
 
     try {
       const parentDocRef = doc(database, 'parents', parentId);
-      console.log("Parent Document Reference: ", parentDocRef);
+      console.log('Parent Document Reference: ', parentDocRef);
 
       // Get students associated with the parent
-      const parentStudentQuery = query(collection(database, 'parent_student'), where('parent', '==', parentDocRef));
+      const parentStudentQuery = query(
+        collection(database, 'parent_student'),
+        where('parent', '==', parentDocRef)
+      );
       const parentStudentSnapshot = await getDocs(parentStudentQuery);
-      const studentRefs = parentStudentSnapshot.docs.map(doc => doc.data().student).filter(ref => ref);
-      console.log("Student References: ", studentRefs);
+      const studentRefs = parentStudentSnapshot.docs
+        .map((doc) => doc.data().student)
+        .filter((ref) => ref);
+      console.log('Student References: ', studentRefs);
 
       if (studentRefs.length === 0) {
         console.log('No students found for this parent.');
@@ -37,10 +42,15 @@ function ParentScreenContent() {
       }
 
       // Get class_student documents where student reference matches
-      const classStudentQuery = query(collection(database, 'class_student'), where('student', 'in', studentRefs));
+      const classStudentQuery = query(
+        collection(database, 'class_student'),
+        where('student', 'in', studentRefs)
+      );
       const classStudentSnapshot = await getDocs(classStudentQuery);
-      const classRefs = classStudentSnapshot.docs.map(doc => doc.data().class).filter(ref => ref);
-      console.log("Class References: ", classRefs);
+      const classRefs = classStudentSnapshot.docs
+        .map((doc) => doc.data().class)
+        .filter((ref) => ref);
+      console.log('Class References: ', classRefs);
 
       if (classRefs.length === 0) {
         console.log('No classes found for these students.');
@@ -55,13 +65,35 @@ function ParentScreenContent() {
         orderBy('date_created', 'desc')
       );
       const assignmentsSnapshot = await getDocs(assignmentsQuery);
-      const assignments = assignmentsSnapshot.docs.map(doc => ({
-        ...doc.data(),
-        id: doc.id,
-        type: 'assignment',
-        timestamp: doc.data().date_created || { seconds: 0, nanoseconds: 0 }
-      }));
-      console.log("Assignments: ", assignments);
+      const assignments = await Promise.all(
+        assignmentsSnapshot.docs.map(async (doc) => {
+          const assignmentData = doc.data();
+          const classDoc = await getDoc(assignmentData.class);
+          const className = classDoc.exists() ? classDoc.data().className : 'Unknown Class';
+
+          // Get the assignment type
+          const assignmentType = assignmentData.type || 'Assignment';
+
+          // Get the student name (assuming single student for simplicity)
+          const studentDoc = await getDoc(studentRefs[0]);
+          const studentName = studentDoc.exists() ? studentDoc.data().name : 'Your child';
+
+          return {
+            ...assignmentData,
+            id: doc.id,
+            type: 'assignment',
+            assignmentName: assignmentData.name,
+            className: className,
+            assignmentType: assignmentType,
+            studentName: studentName,
+            description: assignmentData.description || '',
+            date_assigned: assignmentData.date_assigned,
+            due_date: assignmentData.due_date,
+            timestamp: assignmentData.date_created || { seconds: 0, nanoseconds: 0 },
+          };
+        })
+      );
+      console.log('Assignments: ', assignments);
 
       // Fetch messages where the current parent is the receiver using collectionGroup
       const messagesQuery = query(
@@ -70,70 +102,96 @@ function ParentScreenContent() {
         orderBy('timestamp', 'desc')
       );
       const messagesSnapshot = await getDocs(messagesQuery);
-      const messages = messagesSnapshot.docs.map(doc => {
+      const messages = messagesSnapshot.docs.map((doc) => {
         const messageData = doc.data();
-        console.log("Message Data: ", messageData);
+        console.log('Message Data: ', messageData);
         return {
           ...messageData,
           id: doc.id,
           type: 'message',
-          title: `New message from - ${messageData.sender_type === 'teacher' ? 'Teacher' : 'Parent'}`,
-          timestamp: messageData.timestamp || { seconds: 0, nanoseconds: 0 }
+          title: `New message from - ${
+            messageData.sender_type === 'teacher' ? 'Teacher' : 'Parent'
+          }`,
+          timestamp: messageData.timestamp || { seconds: 0, nanoseconds: 0 },
         };
       });
-      console.log("Messages: ", messages);
+      console.log('Messages: ', messages);
 
       // Fetch grades for those students
-      const gradesQuery = query(collection(database, 'grades'), where('student', 'in', studentRefs));
+      const gradesQuery = query(
+        collection(database, 'grades'),
+        where('student', 'in', studentRefs)
+      );
       const gradesSnapshot = await getDocs(gradesQuery);
-      const newGrades = await Promise.all(gradesSnapshot.docs.map(async doc => {
-        const gradeData = doc.data();
-        const studentDoc = await getDoc(gradeData.student);
-        const assignmentDoc = await getDoc(gradeData.assignment);
+      const newGrades = await Promise.all(
+        gradesSnapshot.docs.map(async (doc) => {
+          const gradeData = doc.data();
+          const studentDoc = await getDoc(gradeData.student);
+          const assignmentDoc = await getDoc(gradeData.assignment);
 
-        return {
-          ...gradeData,
-          id: doc.id,
-          type: 'grade',
-          studentName: studentDoc.exists() ? studentDoc.data().name : 'Unknown Student',
-          assignmentName: assignmentDoc.exists() ? assignmentDoc.data().name : 'Unknown Assignment',
-          grade: gradeData.grade,
-          feedback: gradeData.feedback,
-          timestamp: gradeData.timestamp || { seconds: 0, nanoseconds: 0 }
-        };
-      }));
-      console.log("Grades: ", newGrades);
+          return {
+            ...gradeData,
+            id: doc.id,
+            type: 'grade',
+            studentName: studentDoc.exists() ? studentDoc.data().name : 'Unknown Student',
+            assignmentName: assignmentDoc.exists() ? assignmentDoc.data().name : 'Unknown Assignment',
+            grade: gradeData.grade,
+            feedback: gradeData.feedback,
+            timestamp: gradeData.timestamp || { seconds: 0, nanoseconds: 0 },
+          };
+        })
+      );
+      console.log('Grades: ', newGrades);
 
       // Fetch attendance for those students
-      const attendanceQuery = query(collection(database, 'attendance'), where('student', 'in', studentRefs));
+      const attendanceQuery = query(
+        collection(database, 'attendance'),
+        where('student', 'in', studentRefs)
+      );
       const attendanceSnapshot = await getDocs(attendanceQuery);
-      const newAttendance = await Promise.all(attendanceSnapshot.docs.map(async doc => {
-        const attendanceData = doc.data();
-        const studentDoc = await getDoc(attendanceData.student);
-        const classDoc = await getDoc(attendanceData.class);
+      const newAttendance = await Promise.all(
+        attendanceSnapshot.docs.map(async (doc) => {
+          const attendanceData = doc.data();
+          const studentDoc = await getDoc(attendanceData.student);
+          const classDoc = await getDoc(attendanceData.class);
 
-        return {
-          ...attendanceData,
-          id: doc.id,
-          type: 'attendance',
-          studentName: studentDoc.exists() ? studentDoc.data().name : 'Unknown Student',
-          className: classDoc.exists() ? classDoc.data().name : 'Unknown Class',
-          on_time: attendanceData.on_time,
-          timestamp: attendanceData.timestamp || { seconds: 0, nanoseconds: 0 }
-        };
-      }));
-      console.log("Attendance: ", newAttendance);
+          // Map 'on_time' to a 'status' string
+          let status = '';
+          if (attendanceData.on_time === true) {
+            status = 'on time';
+          } else if (attendanceData.on_time === false) {
+            status = 'late';
+          } else {
+            status = 'absent';
+          }
+
+          return {
+            ...attendanceData,
+            id: doc.id,
+            type: 'attendance',
+            studentName: studentDoc.exists() ? studentDoc.data().name : 'Unknown Student',
+            className: classDoc.exists() ? classDoc.data().className : 'Unknown Class',
+            status: status, // Include the status field
+            timestamp: attendanceData.timestamp || { seconds: 0, nanoseconds: 0 },
+          };
+        })
+      );
+      console.log('Attendance: ', newAttendance);
 
       // Combine all fetched data
-      const allData = [...assignments, ...messages, ...newGrades, ...newAttendance].sort((a, b) => {
+      const allData = [
+        ...assignments,
+        ...messages,
+        ...newGrades,
+        ...newAttendance,
+      ].sort((a, b) => {
         const aTimestamp = a.timestamp && a.timestamp.seconds ? a.timestamp.seconds * 1000 : 0;
         const bTimestamp = b.timestamp && b.timestamp.seconds ? b.timestamp.seconds * 1000 : 0;
         return bTimestamp - aTimestamp;
       });
 
-      console.log("Combined Data: ", allData);
+      console.log('Combined Data: ', allData);
       setCombinedData(allData);
-
     } catch (error) {
       console.error('Error fetching data: ', error);
     }
@@ -150,7 +208,7 @@ function ParentScreenContent() {
           const userData = userDoc.data();
           if (userData.userType === 'parent') {
             setParentId(userDoc.id);
-            console.log("Parent ID set: ", userDoc.id);
+            console.log('Parent ID set: ', userDoc.id);
           }
         }
       }
@@ -191,33 +249,17 @@ function ParentScreenContent() {
         }
       >
         <View style={styles.container}>
-          {combinedData.map((item, index) => (
+          {combinedData.map((item, index) =>
             item.type === 'assignment' ? (
-              <CardComponent 
-                key={index} 
-                data={item} 
-                onClose={removeItemById} 
-              />
+              <CardComponent key={index} data={item} onClose={removeItemById} />
             ) : item.type === 'message' ? (
-              <MessageCardComponent 
-                key={index} 
-                data={item} 
-                onClose={removeItemById} 
-              />
+              <MessageCardComponent key={index} data={item} onClose={removeItemById} />
             ) : item.type === 'grade' ? (
-              <GradeCardComponent 
-                key={index} 
-                data={item} 
-                onClose={removeItemById} 
-              />
-            ) : (
-              <AttendanceCardComponent 
-                key={index} 
-                data={item} 
-                onClose={removeItemById} 
-              />
-            )
-          ))}
+              <GradeCardComponent key={index} data={item} onClose={removeItemById} />
+            ) : item.type === 'attendance' ? (
+              <AttendanceCardComponent key={index} data={item} onClose={removeItemById} />
+            ) : null
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -226,7 +268,7 @@ function ParentScreenContent() {
 
 const ParentScreen = () => {
   return (
-    <Drawer.Navigator drawerContent={props => <DrawerComponent {...props} />}>
+    <Drawer.Navigator drawerContent={(props) => <DrawerComponent {...props} />}>
       <Drawer.Screen name="Home" component={ParentScreenContent} />
     </Drawer.Navigator>
   );

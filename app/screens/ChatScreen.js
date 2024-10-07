@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, TouchableOpacity, SafeAreaView, Image } from 'react-native';
 import { auth, database } from '../config/firebaseConfig';
-import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc, orderBy, limit } from 'firebase/firestore';
 
 function ChatScreen({ navigation }) {
   const [chats, setChats] = useState([]);
@@ -13,37 +13,46 @@ function ChatScreen({ navigation }) {
     }
   }, [user]);
 
-  // Fetch all chats where the parent_id matches the reference of the current user's parent document
+
   const fetchChats = async () => {
     try {
-      // Create a reference to the parent document using the logged-in user's ID
+
       const parentRef = doc(database, 'parents', user.uid);
       const chatsRef = collection(database, 'chats');
-      
-      // Query for chats where the parent_id matches the logged-in user's reference
+
       const q = query(chatsRef, where('parent_id', '==', parentRef));
       const snapshot = await getDocs(q);
 
       const chatDataArray = await Promise.all(
         snapshot.docs.map(async (doc) => {
           const chatData = doc.data();
-          let teacherName = 'Unknown Teacher';
+          let userName = 'Unknown User';
+          let recentMessage = '';
 
-          // Fetch teacher name if available
+          // Fetch user name (teacher or parent)
           if (chatData.teacher_id) {
             try {
               const teacherDoc = await getDoc(chatData.teacher_id);
               if (teacherDoc.exists()) {
-                teacherName = teacherDoc.data().name || 'Unknown Teacher';
+                userName = teacherDoc.data().name || 'Unknown User';
+              }
+
+              // Fetch the most recent message from the messages subcollection
+              const messagesRef = collection(database, 'chats', doc.id, 'messages');
+              const messagesQuery = query(messagesRef, orderBy('timestamp', 'desc'), limit(1));
+              const messagesSnapshot = await getDocs(messagesQuery);
+              if (!messagesSnapshot.empty) {
+                recentMessage = messagesSnapshot.docs[0].data().content || '';
               }
             } catch (error) {
-              console.error('Error fetching teacher data:', error);
+              console.error('Error fetching user or message data:', error);
             }
           }
 
           return {
             id: doc.id,
-            teacherName,
+            userName,
+            recentMessage,
             ...chatData,
           };
         })
@@ -62,12 +71,39 @@ function ChatScreen({ navigation }) {
           chats.map((chat, index) => (
             <TouchableOpacity
               key={index}
-              onPress={() => navigation.navigate('ChatDetails', { chatId: chat.id, teacherName: chat.teacherName })}
+              onPress={() => navigation.navigate('ChatDetails', { chatId: chat.id, userName: chat.userName })}
             >
-              <View style={{ padding: 15, borderBottomWidth: 1, borderColor: '#ccc' }}>
-                <Text style={{ fontSize: 18, fontWeight: 'bold' }}>
-                  {`Chat with ${chat.teacherName ? chat.teacherName : 'Unknown Teacher'}`}
-                </Text>
+              <View style={{ padding: 15, borderBottomWidth: 1, borderColor: '#ccc', flexDirection: 'row', alignItems: 'center' }}>
+                {chat.teacherAvatar ? (
+                  <Image
+                    source={{ uri: chat.teacherAvatar }}
+                    style={{ width: 40, height: 40, borderRadius: 20, marginRight: 10 }}
+                  />
+                ) : (
+                  <View
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                      backgroundColor: '#ccc',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      marginRight: 10,
+                    }}
+                  >
+                    <Text style={{ color: 'white', fontSize: 18 }}>
+                      {chat.userName ? chat.userName.charAt(0).toUpperCase() : '?'}
+                    </Text>
+                  </View>
+                )}
+                <View>
+                  <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 3 }}>
+                    {chat.userName}
+                  </Text>
+                  <Text style={{ fontSize: 17, fontWeight: '300', color: 'gray' }}>
+                    {chat.recentMessage}
+                  </Text>
+                </View>
               </View>
             </TouchableOpacity>
           ))
