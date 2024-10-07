@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, ScrollView, SafeAreaView, RefreshControl } from 'react-native';
-import { collection, getDocs, query, where, orderBy, doc, getDoc } from 'firebase/firestore';
+import { collection, collectionGroup, getDocs, query, where, orderBy, doc, getDoc } from 'firebase/firestore';
 import { auth, database } from '../config/firebaseConfig';
 import CardComponent from '../components/CardComponent';
 import MessageCardComponent from '../components/MessageCardComponent';
@@ -22,11 +22,13 @@ function ParentScreenContent() {
 
     try {
       const parentDocRef = doc(database, 'parents', parentId);
-      
+      console.log("Parent Document Reference: ", parentDocRef);
+
       // Get students associated with the parent
       const parentStudentQuery = query(collection(database, 'parent_student'), where('parent', '==', parentDocRef));
       const parentStudentSnapshot = await getDocs(parentStudentQuery);
       const studentRefs = parentStudentSnapshot.docs.map(doc => doc.data().student).filter(ref => ref);
+      console.log("Student References: ", studentRefs);
 
       if (studentRefs.length === 0) {
         console.log('No students found for this parent.');
@@ -38,6 +40,7 @@ function ParentScreenContent() {
       const classStudentQuery = query(collection(database, 'class_student'), where('student', 'in', studentRefs));
       const classStudentSnapshot = await getDocs(classStudentQuery);
       const classRefs = classStudentSnapshot.docs.map(doc => doc.data().class).filter(ref => ref);
+      console.log("Class References: ", classRefs);
 
       if (classRefs.length === 0) {
         console.log('No classes found for these students.');
@@ -58,42 +61,27 @@ function ParentScreenContent() {
         type: 'assignment',
         timestamp: doc.data().date_created || { seconds: 0, nanoseconds: 0 }
       }));
+      console.log("Assignments: ", assignments);
 
-      // Fetch messages for the parent
-      const chatsQuery = query(collection(database, 'chats'), where('parent_id', '==', parentDocRef));
-      const chatsSnapshot = await getDocs(chatsQuery);
-      const allMessages = [];
-
-      for (const chatDoc of chatsSnapshot.docs) {
-        const messagesQuery = query(
-          collection(database, 'chats', chatDoc.id, 'messages'),
-          where('receiver_id', '==', parentDocRef),
-          orderBy('timestamp', 'desc')
-        );
-        const messagesSnapshot = await getDocs(messagesQuery);
-
-        const newMessages = await Promise.all(messagesSnapshot.docs.map(async doc => {
-          const messageData = doc.data();
-          let senderName = 'Unknown';
-
-          if (messageData.sender_type === 'teacher' || messageData.sender_type === 'parent') {
-            const senderDoc = await getDoc(messageData.sender_id);
-            if (senderDoc.exists()) {
-              senderName = senderDoc.data().name;
-            }
-          }
-
-          return {
-            ...messageData,
-            id: doc.id,
-            title: `New message from - ${senderName}`,
-            type: 'message',
-            timestamp: messageData.timestamp || { seconds: 0, nanoseconds: 0 }
-          };
-        }));
-
-        allMessages.push(...newMessages);
-      }
+      // Fetch messages where the current parent is the receiver using collectionGroup
+      const messagesQuery = query(
+        collectionGroup(database, 'messages'),
+        where('receiver_id', '==', parentDocRef),
+        orderBy('timestamp', 'desc')
+      );
+      const messagesSnapshot = await getDocs(messagesQuery);
+      const messages = messagesSnapshot.docs.map(doc => {
+        const messageData = doc.data();
+        console.log("Message Data: ", messageData);
+        return {
+          ...messageData,
+          id: doc.id,
+          type: 'message',
+          title: `New message from - ${messageData.sender_type === 'teacher' ? 'Teacher' : 'Parent'}`,
+          timestamp: messageData.timestamp || { seconds: 0, nanoseconds: 0 }
+        };
+      });
+      console.log("Messages: ", messages);
 
       // Fetch grades for those students
       const gradesQuery = query(collection(database, 'grades'), where('student', 'in', studentRefs));
@@ -114,6 +102,7 @@ function ParentScreenContent() {
           timestamp: gradeData.timestamp || { seconds: 0, nanoseconds: 0 }
         };
       }));
+      console.log("Grades: ", newGrades);
 
       // Fetch attendance for those students
       const attendanceQuery = query(collection(database, 'attendance'), where('student', 'in', studentRefs));
@@ -133,21 +122,22 @@ function ParentScreenContent() {
           timestamp: attendanceData.timestamp || { seconds: 0, nanoseconds: 0 }
         };
       }));
+      console.log("Attendance: ", newAttendance);
 
       // Combine all fetched data
-      const allData = [...assignments, ...allMessages, ...newGrades, ...newAttendance].sort((a, b) => {
+      const allData = [...assignments, ...messages, ...newGrades, ...newAttendance].sort((a, b) => {
         const aTimestamp = a.timestamp && a.timestamp.seconds ? a.timestamp.seconds * 1000 : 0;
         const bTimestamp = b.timestamp && b.timestamp.seconds ? b.timestamp.seconds * 1000 : 0;
         return bTimestamp - aTimestamp;
       });
 
+      console.log("Combined Data: ", allData);
       setCombinedData(allData);
 
     } catch (error) {
       console.error('Error fetching data: ', error);
     }
   };
-
 
   useEffect(() => {
     const fetchParentId = async () => {
@@ -160,6 +150,7 @@ function ParentScreenContent() {
           const userData = userDoc.data();
           if (userData.userType === 'parent') {
             setParentId(userDoc.id);
+            console.log("Parent ID set: ", userDoc.id);
           }
         }
       }
@@ -169,14 +160,14 @@ function ParentScreenContent() {
   }, []);
 
   useEffect(() => {
-    fetchData();
+    if (parentId) {
+      fetchData();
+    }
   }, [parentId]);
-
 
   const removeItemById = (id) => {
     setCombinedData((prevData) => prevData.filter((item) => item.id !== id));
   };
-
 
   const onRefresh = async () => {
     setIsRefreshing(true);

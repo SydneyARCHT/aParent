@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View } from 'react-native';
 import { GiftedChat, Bubble } from 'react-native-gifted-chat';
 import { auth, database } from '../config/firebaseConfig';
-import { collection, query, orderBy, getDocs, addDoc, serverTimestamp, doc } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs, addDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
 
 const ChatDetails = ({ route }) => {
   const { chatId, teacherName } = route.params; // Get the chatId and teacherName from navigation params
@@ -31,8 +31,8 @@ const ChatDetails = ({ route }) => {
           text: data.content,
           createdAt: data.timestamp.toDate(),
           user: {
-            _id: senderId, 
-            name: data.sender_type === 'parent' ? 'Parent' : teacherName, 
+            _id: senderId,
+            name: data.sender_type === 'parent' ? 'Parent' : teacherName,
           },
         };
       });
@@ -49,22 +49,44 @@ const ChatDetails = ({ route }) => {
       GiftedChat.append(previousMessages, messages)
     );
 
-    // Add the message to Firestore
     try {
-      const { _id, createdAt, text, user } = messages[0];
-      const newMessage = {
-        content: text,
-        sender_id: doc(database, 'users', user._id), // Correctly reference the document in Firestore
-        sender_type: 'parent', // Assuming the logged-in user is a parent
-        timestamp: serverTimestamp(), // Use Firestore server timestamp
-      };
+      const { text } = messages[0];
 
-      const messagesRef = collection(database, 'chats', chatId, 'messages');
-      await addDoc(messagesRef, newMessage);
+      // Get the parent reference if the current user is a parent
+      let senderRef = null;
+      let receiverRef = null;
+
+      // Check if the logged-in user is a parent
+      const userDoc = await getDoc(doc(database, 'users', user.uid));
+      if (userDoc.exists() && userDoc.data().userType === 'parent') {
+        // Set sender to parent reference
+        senderRef = doc(database, 'parents', user.uid);
+        console.log(senderRef)
+
+        // Set receiver to the teacher reference from the chat
+        const chatDoc = await getDoc(doc(database, 'chats', chatId));
+        if (chatDoc.exists()) {
+          receiverRef = chatDoc.data().teacher_id;
+        }
+      }
+
+      // Add the message to Firestore
+      if (senderRef && receiverRef) {
+        const newMessage = {
+          content: text,
+          sender_id: senderRef,
+          receiver_id: receiverRef,
+          sender_type: 'parent', // Assuming the logged-in user is a parent
+          timestamp: serverTimestamp(), // Use Firestore server timestamp
+        };
+
+        const messagesRef = collection(database, 'chats', chatId, 'messages');
+        await addDoc(messagesRef, newMessage);
+      }
     } catch (error) {
       console.error('Error adding message:', error);
     }
-  }, []);
+  }, [chatId]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -96,3 +118,4 @@ const ChatDetails = ({ route }) => {
 };
 
 export default ChatDetails;
+
