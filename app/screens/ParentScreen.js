@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, ScrollView, SafeAreaView, RefreshControl } from 'react-native';
-import { createDrawerNavigator } from '@react-navigation/drawer';
 import { collection, getDocs, query, where, orderBy, doc, getDoc } from 'firebase/firestore';
 import { auth, database } from '../config/firebaseConfig';
-import DrawerComponent from '../navigation/DrawerComponent';
 import CardComponent from '../components/CardComponent';
 import MessageCardComponent from '../components/MessageCardComponent';
 import GradeCardComponent from '../components/GradeCardComponent';
 import AttendanceCardComponent from '../components/AttendanceCardComponent';
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import DrawerComponent from '../navigation/DrawerComponent';
 
 const Drawer = createDrawerNavigator();
 
@@ -16,12 +16,13 @@ function ParentScreenContent() {
   const [combinedData, setCombinedData] = useState([]);
   const [parentId, setParentId] = useState(null);
 
-  // Fetch data function moved outside of useEffect
+  // Function to fetch data for the parent (assignments, messages, grades, attendance)
   const fetchData = async () => {
     if (!parentId) return;
 
     try {
       const parentDocRef = doc(database, 'parents', parentId);
+      
       // Get students associated with the parent
       const parentStudentQuery = query(collection(database, 'parent_student'), where('parent', '==', parentDocRef));
       const parentStudentSnapshot = await getDocs(parentStudentQuery);
@@ -135,8 +136,8 @@ function ParentScreenContent() {
 
       // Combine all fetched data
       const allData = [...assignments, ...allMessages, ...newGrades, ...newAttendance].sort((a, b) => {
-        const aTimestamp = a.timestamp && a.timestamp.toDate ? a.timestamp.toDate().getTime() : 0;
-        const bTimestamp = b.timestamp && b.timestamp.toDate ? b.timestamp.toDate().getTime() : 0;
+        const aTimestamp = a.timestamp && a.timestamp.seconds ? a.timestamp.seconds * 1000 : 0;
+        const bTimestamp = b.timestamp && b.timestamp.seconds ? b.timestamp.seconds * 1000 : 0;
         return bTimestamp - aTimestamp;
       });
 
@@ -147,9 +148,6 @@ function ParentScreenContent() {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, [parentId]);
 
   useEffect(() => {
     const fetchParentId = async () => {
@@ -169,6 +167,16 @@ function ParentScreenContent() {
 
     fetchParentId();
   }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [parentId]);
+
+
+  const removeItemById = (id) => {
+    setCombinedData((prevData) => prevData.filter((item) => item.id !== id));
+  };
+
 
   const onRefresh = async () => {
     setIsRefreshing(true);
@@ -194,13 +202,29 @@ function ParentScreenContent() {
         <View style={styles.container}>
           {combinedData.map((item, index) => (
             item.type === 'assignment' ? (
-              <CardComponent key={index} data={item} />
+              <CardComponent 
+                key={index} 
+                data={item} 
+                onClose={removeItemById} 
+              />
             ) : item.type === 'message' ? (
-              <MessageCardComponent key={index} data={item} />
+              <MessageCardComponent 
+                key={index} 
+                data={item} 
+                onClose={removeItemById} 
+              />
             ) : item.type === 'grade' ? (
-              <GradeCardComponent key={index} data={item} />
+              <GradeCardComponent 
+                key={index} 
+                data={item} 
+                onClose={removeItemById} 
+              />
             ) : (
-              <AttendanceCardComponent key={index} data={item} />
+              <AttendanceCardComponent 
+                key={index} 
+                data={item} 
+                onClose={removeItemById} 
+              />
             )
           ))}
         </View>

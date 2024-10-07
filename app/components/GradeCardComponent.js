@@ -1,46 +1,30 @@
-import React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import * as React from 'react';
+import { Avatar, Card, Text, Button } from 'react-native-paper';
 
-const GradeCardComponent = ({ data }) => {
-  const timestamp = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString() : 'No timestamp available';
+const GradeCardComponent = ({ data, onClose, onView }) => {
+  const handleClosePress = () => {
+    if (onClose && data.id) {
+      onClose(data.id); 
+    }
+  };
 
   return (
-    <View style={styles.card}>
-      <Text style={styles.title}>{`${data.studentName}'s ${data.assignmentName} has been graded!`}</Text>
-      <Text style={styles.content}>{`Grade given: ${data.grade}`}</Text>
-      <Text style={styles.feedback}>{data.feedback}</Text>
-      <Text style={styles.timestamp}>{timestamp}</Text>
-    </View>
+    <Card style={{ marginVertical: 8 }}>
+      <Card.Title 
+        title={`${data.studentName}'s ${data.assignmentName} has been graded!`} 
+        left={(props) => <Avatar.Icon {...props} icon="check-circle" />} 
+      />
+      <Card.Content>
+        <Text variant="bodyMedium">{`Grade Given: ${data.grade}`}</Text>
+        <Text variant="bodySmall" style={{ marginVertical: 8 }}>{data.feedback}</Text>
+        <Text variant="labelSmall" style={{ color: '#888' }}>{new Date(data.timestamp.seconds * 1000).toLocaleString()}</Text>
+      </Card.Content>
+      <Card.Actions>
+        <Button onPress={onView}>View</Button>
+        <Button onPress={handleClosePress}>Close</Button>
+      </Card.Actions>
+    </Card>
   );
 };
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: '#fff',
-    padding: 16,
-    marginVertical: 8,
-    borderRadius: 8,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 5 },
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  content: {
-    fontSize: 16,
-    marginVertical: 8,
-  },
-  feedback: {
-    fontSize: 14,
-    marginVertical: 4,
-  },
-  timestamp: {
-    fontSize: 12,
-    color: '#888',
-  },
-});
 
 export default GradeCardComponent;
