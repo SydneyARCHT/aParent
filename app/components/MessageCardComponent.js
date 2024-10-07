@@ -2,12 +2,17 @@ import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 
 const MessageCardComponent = ({ data }) => {
-    const timestamp = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString() : 'No timestamp available';
+  // Check if all necessary fields exist, otherwise provide fallback values
+  const title = data.title || 'New Message';
+  const content = data.content || 'No content available';
+  const timestamp = data.timestamp && data.timestamp.seconds
+    ? new Date(data.timestamp.seconds * 1000).toLocaleString()
+    : 'No timestamp available';
 
   return (
     <View style={styles.card}>
-      <Text style={styles.title}>{data.title}</Text>
-      <Text style={styles.content}>{data.content}</Text>
+      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.content}>{content}</Text>
       <Text style={styles.timestamp}>{timestamp}</Text>
     </View>
   );

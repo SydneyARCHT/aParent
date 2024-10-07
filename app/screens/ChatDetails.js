@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View } from 'react-native';
+import { View, Platform } from 'react-native';
 import { GiftedChat, Bubble } from 'react-native-gifted-chat';
 import { auth, database } from '../config/firebaseConfig';
 import { collection, query, orderBy, getDocs, addDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
@@ -58,15 +58,27 @@ const ChatDetails = ({ route }) => {
 
       // Check if the logged-in user is a parent
       const userDoc = await getDoc(doc(database, 'users', user.uid));
-      if (userDoc.exists() && userDoc.data().userType === 'parent') {
-        // Set sender to parent reference
-        senderRef = doc(database, 'parents', user.uid);
-        console.log(senderRef)
+      if (userDoc.exists()) {
+        const userType = userDoc.data().userType;
 
-        // Set receiver to the teacher reference from the chat
-        const chatDoc = await getDoc(doc(database, 'chats', chatId));
-        if (chatDoc.exists()) {
-          receiverRef = chatDoc.data().teacher_id;
+        if (userType === 'parent') {
+          // If the user is a parent, set sender to parent reference
+          senderRef = doc(database, 'parents', user.uid);
+
+          // Set receiver to the teacher reference from the chat
+          const chatDoc = await getDoc(doc(database, 'chats', chatId));
+          if (chatDoc.exists()) {
+            receiverRef = chatDoc.data().teacher_id;
+          }
+        } else if (userType === 'teacher') {
+          // If the user is a teacher, set sender to teacher reference
+          senderRef = doc(database, 'teachers', user.uid);
+
+          // Set receiver to the parent reference from the chat
+          const chatDoc = await getDoc(doc(database, 'chats', chatId));
+          if (chatDoc.exists()) {
+            receiverRef = chatDoc.data().parent_id;
+          }
         }
       }
 
@@ -76,7 +88,7 @@ const ChatDetails = ({ route }) => {
           content: text,
           sender_id: senderRef,
           receiver_id: receiverRef,
-          sender_type: 'parent', // Assuming the logged-in user is a parent
+          sender_type: userDoc.data().userType, // Set to either 'parent' or 'teacher'
           timestamp: serverTimestamp(), // Use Firestore server timestamp
         };
 
@@ -112,10 +124,11 @@ const ChatDetails = ({ route }) => {
             />
           );
         }}
+        forceGetKeyboardHeight={Platform.OS === 'android'}
+        bottomOffset={Platform.OS === 'ios' ? 39 : 0} // Adjust bottom offset for iPhone with a notch
       />
     </View>
   );
 };
 
 export default ChatDetails;
-
