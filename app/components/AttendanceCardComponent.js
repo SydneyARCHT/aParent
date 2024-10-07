@@ -9,14 +9,14 @@ const AttendanceCardComponent = ({ data, onClose, onView }) => {
   };
 
   const timestamp = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString() : 'No timestamp available';
-  const status = data.on_time ? 'on time' : 'late';
+  const status = data.on_time ? 'On time' : 'Late';
   const className = data.className || 'Class';
 
   return (
     <Card style={{ marginVertical: 8 }}>
       <Card.Title 
         title={`${data.studentName} was ${status} to ${className}`} 
-        left={(props) => <Avatar.Icon {...props} icon={data.on_time ? 'check' : 'alert'} />} 
+        left={(props) => <Avatar.Icon {...props} icon={data.on_time ? 'clock-check' : 'clock-remove'} />} 
       />
       <Card.Content>
         <Text variant="bodyMedium">{`Attendance Status: ${status}`}</Text>

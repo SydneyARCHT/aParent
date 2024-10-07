@@ -15,7 +15,7 @@ const CardComponent = ({ data, onClose, onView }) => {
         <Card.Title
           title={data?.name || data?.title || 'No Title'}
           subtitle={data?.content || data?.feedback || 'No Description'}
-          left={(props) => <Avatar.Icon {...props} icon="information" />} 
+          left={(props) => <Avatar.Icon {...props} icon="checkbox-multiple-blank" />} 
         />
         <Card.Content>
           <Text variant="bodySmall" style={{ color: '#888' }}>{data?.date || 'No Date Available'}</Text>

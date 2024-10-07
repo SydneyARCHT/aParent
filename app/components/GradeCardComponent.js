@@ -12,7 +12,7 @@ const GradeCardComponent = ({ data, onClose, onView }) => {
     <Card style={{ marginVertical: 8 }}>
       <Card.Title 
         title={`${data.studentName}'s ${data.assignmentName} has been graded!`} 
-        left={(props) => <Avatar.Icon {...props} icon="check-circle" />} 
+        left={(props) => <Avatar.Icon {...props} icon="checkbox-multiple-marked" />} 
       />
       <Card.Content>
         <Text variant="bodyMedium">{`Grade Given: ${data.grade}`}</Text>
