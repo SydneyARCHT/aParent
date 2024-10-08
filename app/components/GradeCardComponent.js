@@ -9,12 +9,14 @@ import {
   Modal,
 } from 'react-native';
 import { Avatar } from 'react-native-paper';
+import { getFirestore, doc, updateDoc } from 'firebase/firestore';
 
 const { width } = Dimensions.get('window');
 
-const GradeCardComponent = ({ data }) => {
+const GradeCardComponent = ({ data, onSeenUpdate }) => {
   const [elevationAnim] = React.useState(new Animated.Value(2));
   const [modalVisible, setModalVisible] = useState(false);
+  const [seen, setSeen] = useState(data.seen);
 
   const handlePressIn = () => {
     Animated.timing(elevationAnim, {
@@ -32,8 +34,19 @@ const GradeCardComponent = ({ data }) => {
     }).start();
   };
 
-  const handleViewMore = () => {
+  const handleViewMore = async () => {
     setModalVisible(true);
+    if (onSeenUpdate && !seen) {
+      try {
+        const db = getFirestore();
+        const gradeRef = doc(db, 'grades', data.id);
+        await updateDoc(gradeRef, { seen: true });
+        await onSeenUpdate(data.id);
+        setSeen(true); // Update local seen state after update
+      } catch (error) {
+        console.error('Error updating seen status:', error);
+      }
+    }
   };
 
   const handleCloseModal = () => {
@@ -76,6 +89,8 @@ const GradeCardComponent = ({ data }) => {
               <View style={[styles.tagContainer, { borderColor: primaryColor }]}>
                 <Text style={styles.tagText}>Grade</Text>
               </View>
+              {/* Green Dot for Unseen */}
+              {!seen && <View style={styles.greenDot} />}
             </View>
             <Text style={styles.title}>{`${assignmentName} ${assignmentType} has been graded`}</Text>
 
@@ -146,6 +161,15 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 12,
+  },
+  greenDot: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#00FF00',
+    position: 'absolute',
+    top: 10,
+    right: 10,
   },
   touchable: {
     flex: 1,

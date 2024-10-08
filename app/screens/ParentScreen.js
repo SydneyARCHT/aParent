@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, ScrollView, SafeAreaView, RefreshControl } from 'react-native';
-import { collection, collectionGroup, getDocs, query, where, orderBy, doc, getDoc } from 'firebase/firestore';
+import { collection, collectionGroup, getDocs, query, where, orderBy, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { auth, database } from '../config/firebaseConfig';
 import CardComponent from '../components/CardComponent';
 import MessageCardComponent from '../components/MessageCardComponent';
@@ -173,6 +173,7 @@ function ParentScreenContent() {
             className: classDoc.exists() ? classDoc.data().className : 'Unknown Class',
             status: status, // Include the status field
             timestamp: attendanceData.timestamp || { seconds: 0, nanoseconds: 0 },
+            seen: attendanceData.seen || false, // Include seen field with default to false
           };
         })
       );
@@ -227,6 +228,36 @@ function ParentScreenContent() {
     setCombinedData((prevData) => prevData.filter((item) => item.id !== id));
   };
 
+  // Add seen update function for other item types and correct document reference
+  const markAsSeen = async (id) => {
+    try {
+      // Update the item in Firestore based on type
+      let docRef;
+
+      if (id.startsWith('attendance')) {
+        docRef = doc(database, 'attendance', id);
+      } else if (id.startsWith('message')) {
+        docRef = doc(database, 'messages', id);
+      } else if (id.startsWith('assignment')) {
+        docRef = doc(database, 'assignments', id);
+      } else if (id.startsWith('grade')) {
+        docRef = doc(database, 'grades', id);
+      }
+
+      if (!docRef) return;
+
+      // Update seen status in Firestore
+      await updateDoc(docRef, { seen: true });
+
+      // Update the item in the local state
+      setCombinedData((prevData) =>
+        prevData.map((item) => (item.id === id ? { ...item, seen: true } : item))
+      );
+    } catch (error) {
+      console.error('Error updating document: ', error);
+    }
+  };
+
   const onRefresh = async () => {
     setIsRefreshing(true);
     try {
@@ -251,13 +282,22 @@ function ParentScreenContent() {
         <View style={styles.container}>
           {combinedData.map((item, index) =>
             item.type === 'assignment' ? (
-              <CardComponent key={index} data={item} onClose={removeItemById} />
+              <CardComponent key={index} data={item} onClose={removeItemById} onSeenUpdate={() => markAsSeen(item.id)} />
             ) : item.type === 'message' ? (
-              <MessageCardComponent key={index} data={item} onClose={removeItemById} />
+              <MessageCardComponent key={index} data={item} onClose={removeItemById} onSeenUpdate={() => markAsSeen(item.id)} />
             ) : item.type === 'grade' ? (
-              <GradeCardComponent key={index} data={item} onClose={removeItemById} />
+              <GradeCardComponent 
+              key={index} 
+              data={item} 
+              onClose={removeItemById} 
+              onSeenUpdate={() => markAsSeen(item.id)} />
             ) : item.type === 'attendance' ? (
-              <AttendanceCardComponent key={index} data={item} onClose={removeItemById} />
+              <AttendanceCardComponent
+                key={index}
+                data={item}
+                onClose={removeItemById}
+                onSeenUpdate={() => markAsSeen(item.id)}
+              />
             ) : null
           )}
         </View>

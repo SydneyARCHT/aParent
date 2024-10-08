@@ -6,18 +6,18 @@ import {
   StyleSheet,
   Dimensions,
   Animated,
-  Image,
   Modal,
 } from 'react-native';
 import { Avatar } from 'react-native-paper';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
 
 const { width } = Dimensions.get('window');
 
-const MessageCardComponent = ({ data, onClose }) => {
+const MessageCardComponent = ({ data, onClose, onSeenUpdate }) => {
   const [elevationAnim] = React.useState(new Animated.Value(2));
   const [modalVisible, setModalVisible] = useState(false);
   const [senderName, setSenderName] = useState('Sender');
+  const [seen, setSeen] = useState(data.seen);
 
   useEffect(() => {
     const fetchSenderName = async () => {
@@ -66,8 +66,19 @@ const MessageCardComponent = ({ data, onClose }) => {
     }).start();
   };
 
-  const handleViewMore = () => {
+  const handleViewMore = async () => {
     setModalVisible(true);
+    if (onSeenUpdate && !seen) {
+      try {
+        const db = getFirestore();
+        const messageRef = doc(db, 'messages', data.id);
+        await updateDoc(messageRef, { seen: true });
+        await onSeenUpdate(data.id);
+        setSeen(true); // Update local seen state after update
+      } catch (error) {
+        console.error('Error updating seen status:', error);
+      }
+    }
   };
 
   const handleCloseModal = () => {
@@ -112,6 +123,8 @@ const MessageCardComponent = ({ data, onClose }) => {
               <View style={styles.tagContainer}>
                 <Text style={styles.tagText}>Message</Text>
               </View>
+              {/* Display the green dot if the message is not seen */}
+              {!seen && <View style={styles.greenDot} />}
             </View>
             <Text style={styles.title}>{`New Message from ${senderName}`}</Text>
 
@@ -188,6 +201,15 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 12,
+  },
+  greenDot: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#00FF00',
+    position: 'absolute',
+    top: 10,
+    right: 10,
   },
   touchable: {
     flex: 1,

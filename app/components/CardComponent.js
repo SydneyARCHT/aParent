@@ -9,7 +9,7 @@ import {
   Modal,
 } from 'react-native';
 import { Avatar } from 'react-native-paper';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
 
 const { width } = Dimensions.get('window');
 
@@ -17,6 +17,7 @@ const CardComponent = ({ data, onClose, onView }) => {
   const [elevationAnim] = React.useState(new Animated.Value(2));
   const [modalVisible, setModalVisible] = useState(false);
   const [teacherName, setTeacherName] = useState('Teacher');
+  const [seen, setSeen] = useState(data.seen);
 
   useEffect(() => {
     const fetchTeacherName = async () => {
@@ -54,8 +55,18 @@ const CardComponent = ({ data, onClose, onView }) => {
     }).start();
   };
 
-  const handleViewMore = () => {
+  const handleViewMore = async () => {
     setModalVisible(true);
+    if (!seen) {
+      try {
+        const db = getFirestore();
+        const assignmentRef = doc(db, 'assignments', data.id);
+        await updateDoc(assignmentRef, { seen: true });
+        setSeen(true); // Update local seen state after update
+      } catch (error) {
+        console.error('Error updating seen status:', error);
+      }
+    }
   };
 
   const handleCloseModal = () => {
@@ -107,6 +118,8 @@ const CardComponent = ({ data, onClose, onView }) => {
               <View style={styles.tagContainer}>
                 <Text style={styles.tagText}>{assignmentType}</Text>
               </View>
+              {/* Green Dot for Unseen */}
+              {!seen && <View style={styles.greenDot} />}
             </View>
             <Text style={styles.title}>{`New ${assignmentType} Assigned To ${studentName}`}</Text>
 
@@ -182,6 +195,14 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 12,
+  },
+  greenDot: {
+    width: 16,
+    height: 16,
+    borderRadius: 20,
+    backgroundColor: '#00FF00',
+    marginLeft: 'auto',
+    marginRight: 10,
   },
   touchable: {
     flex: 1,

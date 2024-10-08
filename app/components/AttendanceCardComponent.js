@@ -9,12 +9,14 @@ import {
   Modal,
 } from 'react-native';
 import { Avatar } from 'react-native-paper';
+import { getFirestore, doc, updateDoc } from 'firebase/firestore';
 
 const { width } = Dimensions.get('window');
 
-const AttendanceCardComponent = ({ data }) => {
+const AttendanceCardComponent = ({ data, onSeenUpdate }) => {
   const [elevationAnim] = React.useState(new Animated.Value(2));
   const [modalVisible, setModalVisible] = useState(false);
+  const [seen, setSeen] = useState(data.seen);
 
   const handlePressIn = () => {
     Animated.timing(elevationAnim, {
@@ -32,8 +34,19 @@ const AttendanceCardComponent = ({ data }) => {
     }).start();
   };
 
-  const handleViewMore = () => {
+  const handleViewMore = async () => {
     setModalVisible(true);
+    if (onSeenUpdate && !seen) {
+      try {
+        const db = getFirestore();
+        const attendanceRef = doc(db, 'attendance', data.id);
+        await updateDoc(attendanceRef, { seen: true });
+        await onSeenUpdate(data.id);
+        setSeen(true); // Update local seen state after update
+      } catch (error) {
+        console.error('Error updating seen status:', error);
+      }
+    }
   };
 
   const handleCloseModal = () => {
@@ -74,6 +87,8 @@ const AttendanceCardComponent = ({ data }) => {
               <View style={[styles.tagContainer, { borderColor: primaryColor }]}>
                 <Text style={styles.tagText}>Attendance</Text>
               </View>
+              {/* Green Dot for Unseen */}
+              {!seen && <View style={styles.greenDot} />}
             </View>
             <Text style={styles.title}>{`New attendance report for ${date}`}</Text>
 
@@ -144,6 +159,14 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 12,
+  },
+  greenDot: {
+    width: 16,
+    height: 16,
+    borderRadius: 20,
+    backgroundColor: '#00FF00',
+    marginLeft: 'auto',
+    marginRight: 10,
   },
   touchable: {
     flex: 1,
