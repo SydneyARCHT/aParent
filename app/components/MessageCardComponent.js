@@ -71,10 +71,10 @@ const MessageCardComponent = ({ data, onClose, onSeenUpdate }) => {
     if (onSeenUpdate && !seen) {
       try {
         const db = getFirestore();
-        const messageRef = doc(db, 'messages', data.id);
+        const messageRef = doc(db, `chats/${data.chatId}/messages`, data.id);
         await updateDoc(messageRef, { seen: true });
         await onSeenUpdate(data.id);
-        setSeen(true); // Update local seen state after update
+        setSeen(true);
       } catch (error) {
         console.error('Error updating seen status:', error);
       }
@@ -97,7 +97,6 @@ const MessageCardComponent = ({ data, onClose, onSeenUpdate }) => {
     : 'No timestamp available';
   const avatarUri = data.avatarUri || 'https://via.placeholder.com/50';
 
-  // Colors
   const primaryColor = '#141212'; 
   const secondaryColor = '#8FFFBD'; 
 
@@ -112,7 +111,6 @@ const MessageCardComponent = ({ data, onClose, onSeenUpdate }) => {
           style={styles.touchable}
         >
           <View style={styles.innerContainer}>
-            {/* Header */}
             <View style={styles.header}>
               <Avatar.Icon
                 size={30}
@@ -123,7 +121,6 @@ const MessageCardComponent = ({ data, onClose, onSeenUpdate }) => {
               <View style={styles.tagContainer}>
                 <Text style={styles.tagText}>Message</Text>
               </View>
-              {/* Display the green dot if the message is not seen */}
               {!seen && <View style={styles.greenDot} />}
             </View>
             <Text style={styles.title}>{`New Message from ${senderName}`}</Text>

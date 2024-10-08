@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, ScrollView, SafeAreaView, RefreshControl } from 'react-native';
-import { collection, collectionGroup, getDocs, query, where, orderBy, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { StyleSheet, View, ScrollView, SafeAreaView, RefreshControl, ActivityIndicator } from 'react-native';
+import { collection, getDocs, query, where, orderBy, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { auth, database } from '../config/firebaseConfig';
 import CardComponent from '../components/CardComponent';
 import MessageCardComponent from '../components/MessageCardComponent';
@@ -15,8 +15,8 @@ function ParentScreenContent() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [combinedData, setCombinedData] = useState([]);
   const [parentId, setParentId] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Function to fetch data for the parent (assignments, messages, grades, attendance)
   const fetchData = async () => {
     if (!parentId) return;
 
@@ -24,7 +24,6 @@ function ParentScreenContent() {
       const parentDocRef = doc(database, 'parents', parentId);
       console.log('Parent Document Reference: ', parentDocRef);
 
-      // Get students associated with the parent
       const parentStudentQuery = query(
         collection(database, 'parent_student'),
         where('parent', '==', parentDocRef)
@@ -33,15 +32,13 @@ function ParentScreenContent() {
       const studentRefs = parentStudentSnapshot.docs
         .map((doc) => doc.data().student)
         .filter((ref) => ref);
-      console.log('Student References: ', studentRefs);
 
       if (studentRefs.length === 0) {
-        console.log('No students found for this parent.');
         setCombinedData([]);
+        setLoading(false);
         return;
       }
 
-      // Get class_student documents where student reference matches
       const classStudentQuery = query(
         collection(database, 'class_student'),
         where('student', 'in', studentRefs)
@@ -50,15 +47,13 @@ function ParentScreenContent() {
       const classRefs = classStudentSnapshot.docs
         .map((doc) => doc.data().class)
         .filter((ref) => ref);
-      console.log('Class References: ', classRefs);
 
       if (classRefs.length === 0) {
-        console.log('No classes found for these students.');
         setCombinedData([]);
+        setLoading(false);
         return;
       }
 
-      // Fetch assignments for those classes
       const assignmentsQuery = query(
         collection(database, 'assignments'),
         where('class', 'in', classRefs),
@@ -71,10 +66,8 @@ function ParentScreenContent() {
           const classDoc = await getDoc(assignmentData.class);
           const className = classDoc.exists() ? classDoc.data().className : 'Unknown Class';
 
-          // Get the assignment type
           const assignmentType = assignmentData.type || 'Assignment';
 
-          // Get the student name (assuming single student for simplicity)
           const studentDoc = await getDoc(studentRefs[0]);
           const studentName = studentDoc.exists() ? studentDoc.data().name : 'Your child';
 
@@ -93,31 +86,38 @@ function ParentScreenContent() {
           };
         })
       );
-      console.log('Assignments: ', assignments);
 
-      // Fetch messages where the current parent is the receiver using collectionGroup
-      const messagesQuery = query(
-        collectionGroup(database, 'messages'),
-        where('receiver_id', '==', parentDocRef),
-        orderBy('timestamp', 'desc')
+      const chatsQuery = query(
+        collection(database, 'chats'),
+        where('parent_id', '==', parentDocRef)
       );
-      const messagesSnapshot = await getDocs(messagesQuery);
-      const messages = messagesSnapshot.docs.map((doc) => {
-        const messageData = doc.data();
-        console.log('Message Data: ', messageData);
-        return {
-          ...messageData,
-          id: doc.id,
-          type: 'message',
-          title: `New message from - ${
-            messageData.sender_type === 'teacher' ? 'Teacher' : 'Parent'
-          }`,
-          timestamp: messageData.timestamp || { seconds: 0, nanoseconds: 0 },
-        };
-      });
-      console.log('Messages: ', messages);
+      const chatsSnapshot = await getDocs(chatsQuery);
+      const chatIds = chatsSnapshot.docs.map((doc) => doc.id);
 
-      // Fetch grades for those students
+      let messages = [];
+      for (const chatId of chatIds) {
+        const messagesQuery = query(
+          collection(database, `chats/${chatId}/messages`),
+          where('receiver_id', '==', parentDocRef),
+          orderBy('timestamp', 'desc')
+        );
+        const messagesSnapshot = await getDocs(messagesQuery);
+        messages = messages.concat(
+          messagesSnapshot.docs.map((doc) => {
+            const messageData = doc.data();
+
+            return {
+              ...messageData,
+              id: doc.id,
+              chatId: chatId,
+              type: 'message',
+              title: `New message from - ${messageData.sender_type === 'teacher' ? 'Teacher' : 'Parent'}`,
+              timestamp: messageData.timestamp || { seconds: 0, nanoseconds: 0 },
+            };
+          })
+        );
+      }
+
       const gradesQuery = query(
         collection(database, 'grades'),
         where('student', 'in', studentRefs)
@@ -141,9 +141,7 @@ function ParentScreenContent() {
           };
         })
       );
-      console.log('Grades: ', newGrades);
 
-      // Fetch attendance for those students
       const attendanceQuery = query(
         collection(database, 'attendance'),
         where('student', 'in', studentRefs)
@@ -155,7 +153,6 @@ function ParentScreenContent() {
           const studentDoc = await getDoc(attendanceData.student);
           const classDoc = await getDoc(attendanceData.class);
 
-          // Map 'on_time' to a 'status' string
           let status = '';
           if (attendanceData.on_time === true) {
             status = 'on time';
@@ -171,15 +168,13 @@ function ParentScreenContent() {
             type: 'attendance',
             studentName: studentDoc.exists() ? studentDoc.data().name : 'Unknown Student',
             className: classDoc.exists() ? classDoc.data().className : 'Unknown Class',
-            status: status, // Include the status field
+            status: status,
             timestamp: attendanceData.timestamp || { seconds: 0, nanoseconds: 0 },
-            seen: attendanceData.seen || false, // Include seen field with default to false
+            seen: attendanceData.seen || false,
           };
         })
       );
-      console.log('Attendance: ', newAttendance);
 
-      // Combine all fetched data
       const allData = [
         ...assignments,
         ...messages,
@@ -191,10 +186,11 @@ function ParentScreenContent() {
         return bTimestamp - aTimestamp;
       });
 
-      console.log('Combined Data: ', allData);
       setCombinedData(allData);
     } catch (error) {
       console.error('Error fetching data: ', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -209,7 +205,6 @@ function ParentScreenContent() {
           const userData = userDoc.data();
           if (userData.userType === 'parent') {
             setParentId(userDoc.id);
-            console.log('Parent ID set: ', userDoc.id);
           }
         }
       }
@@ -228,31 +223,15 @@ function ParentScreenContent() {
     setCombinedData((prevData) => prevData.filter((item) => item.id !== id));
   };
 
-  // Add seen update function for other item types and correct document reference
-  const markAsSeen = async (id) => {
+  const markAsSeen = async (item) => {
     try {
-      // Update the item in Firestore based on type
-      let docRef;
-
-      if (id.startsWith('attendance')) {
-        docRef = doc(database, 'attendance', id);
-      } else if (id.startsWith('message')) {
-        docRef = doc(database, 'messages', id);
-      } else if (id.startsWith('assignment')) {
-        docRef = doc(database, 'assignments', id);
-      } else if (id.startsWith('grade')) {
-        docRef = doc(database, 'grades', id);
+      if (item.type === 'message') {
+        const docRef = doc(database, `chats/${item.chatId}/messages`, item.id);
+        await updateDoc(docRef, { seen: true });
+        setCombinedData((prevData) =>
+          prevData.map((dataItem) => (dataItem.id === item.id ? { ...dataItem, seen: true } : dataItem))
+        );
       }
-
-      if (!docRef) return;
-
-      // Update seen status in Firestore
-      await updateDoc(docRef, { seen: true });
-
-      // Update the item in the local state
-      setCombinedData((prevData) =>
-        prevData.map((item) => (item.id === id ? { ...item, seen: true } : item))
-      );
     } catch (error) {
       console.error('Error updating document: ', error);
     }
@@ -266,6 +245,10 @@ function ParentScreenContent() {
       setIsRefreshing(false);
     }
   };
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#e91e63" style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }} />;
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -282,21 +265,17 @@ function ParentScreenContent() {
         <View style={styles.container}>
           {combinedData.map((item, index) =>
             item.type === 'assignment' ? (
-              <CardComponent key={index} data={item} onClose={removeItemById} onSeenUpdate={() => markAsSeen(item.id)} />
+              <CardComponent key={index} data={item} onClose={removeItemById} onSeenUpdate={() => markAsSeen(item)} />
             ) : item.type === 'message' ? (
-              <MessageCardComponent key={index} data={item} onClose={removeItemById} onSeenUpdate={() => markAsSeen(item.id)} />
+              <MessageCardComponent key={index} data={item} onClose={removeItemById} onSeenUpdate={() => markAsSeen(item)} />
             ) : item.type === 'grade' ? (
-              <GradeCardComponent 
-              key={index} 
-              data={item} 
-              onClose={removeItemById} 
-              onSeenUpdate={() => markAsSeen(item.id)} />
+              <GradeCardComponent key={index} data={item} onClose={removeItemById} onSeenUpdate={() => markAsSeen(item)} />
             ) : item.type === 'attendance' ? (
               <AttendanceCardComponent
                 key={index}
                 data={item}
                 onClose={removeItemById}
-                onSeenUpdate={() => markAsSeen(item.id)}
+                onSeenUpdate={() => markAsSeen(item)}
               />
             ) : null
           )}
