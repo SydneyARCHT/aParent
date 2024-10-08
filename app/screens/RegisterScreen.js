@@ -4,6 +4,7 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, database } from "../config/firebaseConfig";
 import { doc, setDoc } from 'firebase/firestore';
 import DropDownPicker from 'react-native-dropdown-picker';
+import { useNavigation } from "@react-navigation/native"; 
 
 export default function Signup() {
   const [email, setEmail] = useState('');
@@ -17,6 +18,8 @@ export default function Signup() {
     { label: 'Parent', value: 'parent' },
     { label: 'Teacher', value: 'teacher' }
   ]);
+
+  const navigation = useNavigation(); 
 
   const onHandleSignup = async () => {
     if (email !== '' && password !== '' && confirmPassword !== '' && firstName !== '' && lastName !== '') {

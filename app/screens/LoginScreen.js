@@ -3,11 +3,12 @@ import { StyleSheet, Text, View, TextInput, SafeAreaView, TouchableOpacity, Stat
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth, database } from "../config/firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
+import { useNavigation } from "@react-navigation/native"; 
 
 export default function RegisterScreen() {
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigation = useNavigation(); 
 
   const onHandleLogin = async () => {
     if (email !== "" && password !== "") {
@@ -69,6 +70,7 @@ export default function RegisterScreen() {
       </View>
     );
   }
+
   const styles = StyleSheet.create({
     container: {
       flex: 1,
