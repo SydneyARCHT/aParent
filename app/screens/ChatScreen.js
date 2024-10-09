@@ -2,8 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, SafeAreaView, Image } from 'react-native';
 import { auth, database } from '../config/firebaseConfig';
 import { collection, query, where, getDocs, doc, getDoc, orderBy, limit } from 'firebase/firestore';
+import DrawerComponent from '../navigation/DrawerComponent';
+import { createDrawerNavigator } from '@react-navigation/drawer';
 
-function ChatScreen({ navigation }) {
+
+const Drawer = createDrawerNavigator();
+
+function ChatScreenContent({ navigation }) {
   const [chats, setChats] = useState([]);
   const user = auth.currentUser;
 
@@ -116,5 +121,15 @@ function ChatScreen({ navigation }) {
     </SafeAreaView>
   );
 }
+
+
+const ChatScreen = () => {
+  return (
+    <Drawer.Navigator drawerContent={(props) => <DrawerComponent {...props} />}>
+      <Drawer.Screen name="Messages" component={ChatScreenContent} />
+    </Drawer.Navigator>
+  );
+};
+
 
 export default ChatScreen;

@@ -2,8 +2,12 @@
 import React from 'react';
 import { StyleSheet, SafeAreaView } from 'react-native';
 import Chat from './ChatScreen';
+import DrawerComponent from '../navigation/DrawerComponent';
+import { createDrawerNavigator } from '@react-navigation/drawer';
 
-function MessagesScreen() {
+const Drawer = createDrawerNavigator();
+
+function MessagesScreenContent() {
   return (
     <SafeAreaView style={styles.container}>
       <Chat /> 
@@ -16,5 +20,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
+
+const MessagesScreen = () => {
+  return (
+    <Drawer.Navigator drawerContent={(props) => <DrawerComponent {...props} />}>
+      <Drawer.Screen name="Resources" component={MessagesScreenContent} />
+    </Drawer.Navigator>
+  );
+};
 
 export default MessagesScreen;

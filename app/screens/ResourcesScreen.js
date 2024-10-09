@@ -1,21 +1,26 @@
 import React from 'react';
 import { SafeAreaView, View, Text, StyleSheet, ScrollView, FlatList, TouchableOpacity, Image, Linking } from 'react-native';
+import DrawerComponent from '../navigation/DrawerComponent';
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import { MaterialIcons } from '@expo/vector-icons';
 
-const ResourcesScreen = () => {
+const Drawer = createDrawerNavigator();
+
+const ResourcesScreenContent = () => {
   const articles = [
-    { id: '1', title: 'Improve learning skills', subtitle: '5 techniques for better behavior', image: 'https://via.placeholder.com/150', url: 'https://www.learnfasthq.com/blog/9-tips-to-improve-how-you-learn-your-learning-capacity' },
-    { id: '2', title: 'Motivating your child', subtitle: 'Effective strategies for parents', image: 'https://via.placeholder.com/150', url: 'https://developingchild.harvard.edu/resources/how-to-motivate-children-science-based-approaches-for-parents-caregivers-and-teachers/#:~:text=Praise%20the%20process%20rather%20than%20the%20outcome.&text=When%20we%20praise%20children%20for%20their%20effort%20and%20help%20them,they%20put%20their%20mind%20to.' },
-    { id: '3', title: 'Develop study habits', subtitle: 'Tools and tips for success', image: 'https://via.placeholder.com/150', url: 'https://www.coursera.org/articles/study-habits' },
-    { id: '4', title: 'Time management for students', subtitle: 'Master time and productivity', image: 'https://via.placeholder.com/150', url: 'https://summer.harvard.edu/blog/8-time-management-tips-for-students/' },
-    { id: '5', title: 'Boost concentration', subtitle: 'Tips for better focus', image: 'https://via.placeholder.com/150', url: 'https://www.teachstarter.com/us/blog/10-ways-to-improve-student-concentration-us/' },
+    { id: '1', title: 'Improve Learning Skills', subtitle: '5 techniques for better behavior', image: 'https://via.placeholder.com/150', url: 'https://www.learnfasthq.com/blog/9-tips-to-improve-how-you-learn-your-learning-capacity' },
+    { id: '2', title: 'Motivating Your Child', subtitle: 'Effective strategies for parents', image: 'https://via.placeholder.com/150', url: 'https://developingchild.harvard.edu/resources/how-to-motivate-children-science-based-approaches-for-parents-caregivers-and-teachers/#:~:text=Praise%20the%20process%20rather%20than%20the%20outcome.&text=When%20we%20praise%20children%20for%20their%20effort%20and%20help%20them,they%20put%20their%20mind%20to.' },
+    { id: '3', title: 'Develop Study Habits', subtitle: 'Tools and tips for success', image: 'https://via.placeholder.com/150', url: 'https://www.coursera.org/articles/study-habits' },
+    { id: '4', title: 'Time Management for Students', subtitle: 'Master time and productivity', image: 'https://via.placeholder.com/150', url: 'https://summer.harvard.edu/blog/8-time-management-tips-for-students/' },
+    { id: '5', title: 'Boost Concentration', subtitle: 'Tips for better focus', image: 'https://via.placeholder.com/150', url: 'https://www.teachstarter.com/us/blog/10-ways-to-improve-student-concentration-us/' },
   ];
 
   const mathResources = [
-    { id: '1', title: 'Free math tutor online', subtitle: 'Free for all students', image: 'https://via.placeholder.com/150', url: 'https://schoolhouse.world/' },
-    { id: '2', title: 'Math practice games', subtitle: 'Interactive and fun learning', image: 'https://via.placeholder.com/150', url: 'https://www.mathgames.com/' },
-    { id: '3', title: 'Math for beginners', subtitle: 'Basic concepts explained', image: 'https://via.placeholder.com/150', url: 'https://www.khanacademy.org/math' },
-    { id: '4', title: 'Algebra tips', subtitle: 'Step-by-step algebra help', image: 'https://via.placeholder.com/150', url: 'https://tlp-lpa.ca/math-tutorials/algebra' },
-    { id: '5', title: 'Geometry fun', subtitle: 'Learn geometry with fun activities', image: 'https://via.placeholder.com/150', url: 'https://www.mathsisfun.com/geometry/' },
+    { id: '1', title: 'Free Math Tutor Online', subtitle: 'Free for all students', image: 'https://via.placeholder.com/150', url: 'https://schoolhouse.world/' },
+    { id: '2', title: 'Math Practice Games', subtitle: 'Interactive and fun learning', image: 'https://via.placeholder.com/150', url: 'https://www.mathgames.com/' },
+    { id: '3', title: 'Math for Beginners', subtitle: 'Basic concepts explained', image: 'https://via.placeholder.com/150', url: 'https://www.khanacademy.org/math' },
+    { id: '4', title: 'Algebra Tips', subtitle: 'Step-by-step algebra help', image: 'https://via.placeholder.com/150', url: 'https://tlp-lpa.ca/math-tutorials/algebra' },
+    { id: '5', title: 'Geometry Fun', subtitle: 'Learn geometry with fun activities', image: 'https://via.placeholder.com/150', url: 'https://www.mathsisfun.com/geometry/' },
   ];
 
   const scienceResources = [
@@ -44,74 +49,37 @@ const ResourcesScreen = () => {
 
   const renderItem = ({ item }) => (
     <TouchableOpacity style={styles.card} onPress={() => Linking.openURL(item.url)}>
-      <Image source={{ uri: item.image }} style={styles.cardImage} />
       <Text style={styles.cardTitle}>{item.title}</Text>
       <Text style={styles.cardSubtitle}>{item.subtitle}</Text>
+      <Image source={{ uri: item.image }} style={styles.cardImage} />
     </TouchableOpacity>
+  );
+
+  const renderSection = (title, data) => (
+    <View style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>{title}</Text>
+        <MaterialIcons name="arrow-forward" size={24} color="black" />
+      </View>
+      <FlatList
+        data={data}
+        renderItem={renderItem}
+        keyExtractor={item => item.id}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.horizontalList}
+      />
+    </View>
   );
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Articles</Text>
-          <FlatList
-            data={articles}
-            renderItem={renderItem}
-            keyExtractor={item => item.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalList}
-          />
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Math</Text>
-          <FlatList
-            data={mathResources}
-            renderItem={renderItem}
-            keyExtractor={item => item.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalList}
-          />
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Science</Text>
-          <FlatList
-            data={scienceResources}
-            renderItem={renderItem}
-            keyExtractor={item => item.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalList}
-          />
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>English</Text>
-          <FlatList
-            data={englishResources}
-            renderItem={renderItem}
-            keyExtractor={item => item.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalList}
-          />
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>History</Text>
-          <FlatList
-            data={historyResources}
-            renderItem={renderItem}
-            keyExtractor={item => item.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalList}
-          />
-        </View>
+        {renderSection('Articles', articles)}
+        {renderSection('Math', mathResources)}
+        {renderSection('Science', scienceResources)}
+        {renderSection('English', englishResources)}
+        {renderSection('History', historyResources)}
       </ScrollView>
     </SafeAreaView>
   );
@@ -128,10 +96,15 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 24,
   },
-  sectionTitle: {
-    fontSize: 27,
-    fontWeight: 'bold',
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 33,
+    fontWeight: 'bold',
   },
   horizontalList: {
     paddingHorizontal: 8,
@@ -141,25 +114,37 @@ const styles = StyleSheet.create({
     padding: 16,
     marginHorizontal: 8,
     borderRadius: 10,
-    width: 220,  
-    alignItems: 'center', 
+    width: 320,
+    alignItems: 'flex-start', 
+    height: 220
   },
   cardImage: {
     width: 150,
     height: 100,
     borderRadius: 10,
-    marginBottom: 8,
+    marginTop: 8, 
   },
   cardTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    textAlign: 'center',
+    textAlign: 'left', 
+    marginBottom: 4, 
   },
   cardSubtitle: {
     fontSize: 14,
     color: '#666',
-    textAlign: 'center',
+    textAlign: 'left', 
+    marginBottom: 8, 
   },
 });
+
+
+const ResourcesScreen = () => {
+  return (
+    <Drawer.Navigator drawerContent={(props) => <DrawerComponent {...props} />}>
+      <Drawer.Screen name="Resources" component={ResourcesScreenContent} />
+    </Drawer.Navigator>
+  );
+};
 
 export default ResourcesScreen;

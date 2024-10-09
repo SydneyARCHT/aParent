@@ -36,7 +36,6 @@ const DrawerComponent = ({ navigation }) => {
     try {
       await signOut(auth);
       Alert.alert('Logged Out', 'You have been logged out successfully.');
-      navigation.navigate('Welcome');
     } catch (error) {
       console.error('Error signing out: ', error);
       Alert.alert('Logout Error', 'There was an issue logging out. Please try again.');

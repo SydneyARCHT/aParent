@@ -3,15 +3,15 @@ import { Text, View, StyleSheet, FlatList, SafeAreaView } from 'react-native';
 import { List, Divider, useTheme } from 'react-native-paper';
 
 const subjects = [
-  { name: 'Math', grade: '75%' },
-  { name: 'English', grade: '75%' },
-  { name: 'Science', grade: '75%' },
-  { name: 'Art', grade: '75%' },
-  { name: 'Phys. Ed', grade: '75%' },
-  { name: 'Music', grade: '75%' },
-  { name: 'Reading', grade: '75%' },
-  { name: 'French', grade: '75%' },
-  { name: 'Social Studies', grade: '75%' },
+  { name: 'Math', grade: '93%' },
+  { name: 'English', grade: '90%' },
+  { name: 'Science', grade: '86%' },
+  { name: 'Art', grade: '100%' },
+  { name: 'Phys. Ed', grade: '100%' },
+  { name: 'Music', grade: '91%' },
+  { name: 'Reading', grade: '98%' },
+  { name: 'French', grade: '78%' },
+  { name: 'Social Studies', grade: '96%' },
 ];
 
 function GradesScreen() {
