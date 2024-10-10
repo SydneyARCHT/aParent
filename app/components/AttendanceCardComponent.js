@@ -115,14 +115,14 @@ const AttendanceCardComponent = ({ data, onSeenUpdate }) => {
               size={50}
               icon="clipboard-list"
               color="#FFFFFF"
-              style={[styles.icon, { backgroundColor: primaryColor, marginBottom: 20 }]}
+              style={[styles.icon, { backgroundColor: '#5BFF9F', marginBottom: 20 }]}
             />
             <Text style={styles.modalTitle}>{`Attendance report for ${studentName}`}</Text>
             <Text style={styles.modalStatus}>Status: {status.charAt(0).toUpperCase() + status.slice(1)}</Text>
             <Text style={styles.modalClass}>Class: {className}</Text>
             <Text style={styles.modalDate}>Date: {date}</Text>
 
-            <TouchableOpacity onPress={handleCloseModal} style={[styles.closeButton, { backgroundColor: primaryColor }]}>
+            <TouchableOpacity onPress={handleCloseModal} style={[styles.closeButton, { backgroundColor: '#5BFF9F', borderColor: '#A7FFCC', borderWidth: 4,}]}>
               <Text style={styles.closeButtonText}>Close</Text>
             </TouchableOpacity>
           </View>
@@ -222,6 +222,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     alignItems: 'center',
+    backgroundColor: 'white', 
+    borderColor: '#A7FFCC', 
+    borderWidth: 5,
   },
   modalTitle: {
     fontSize: 18,
