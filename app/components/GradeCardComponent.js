@@ -84,7 +84,7 @@ const GradeCardComponent = ({ data, onSeenUpdate }) => {
                 size={30}
                 icon="checkbox-multiple-marked"
                 color="#FFFFFF"
-                style={[styles.icon, { backgroundColor: primaryColor }]}
+                style={[styles.icon, { backgroundColor: '#AE5BFF', borderColor: primaryColor }]}
               />
               <View style={[styles.tagContainer, { borderColor: primaryColor }]}>
                 <Text style={styles.tagText}>Grade</Text>
@@ -96,7 +96,7 @@ const GradeCardComponent = ({ data, onSeenUpdate }) => {
 
             {/* Button */}
             <View style={styles.actions}>
-              <TouchableOpacity onPress={handleViewMore} style={[styles.viewMoreButton, { backgroundColor: primaryColor }]}>
+              <TouchableOpacity onPress={handleViewMore} style={[styles.viewMoreButton, { backgroundColor: '#AE5BFF', borderColor: primaryColor}]}>
                 <Text style={styles.viewMoreButtonText}>View More</Text>
               </TouchableOpacity>
             </View>
@@ -117,14 +117,14 @@ const GradeCardComponent = ({ data, onSeenUpdate }) => {
               size={50}
               icon="checkbox-multiple-marked"
               color="#FFFFFF"
-              style={[styles.icon, { backgroundColor: primaryColor, marginBottom: 20 }]}
+              style={[styles.icon, { backgroundColor: '#AE5BFF', marginBottom: 20, borderColor: primaryColor}]}
             />
             <Text style={styles.modalTitle}>{`${studentName}'s ${assignmentName} ${assignmentType}`}</Text>
             <Text style={styles.modalGrade}>Grade: {grade}</Text>
             {feedback ? <Text style={styles.modalFeedback}>Feedback: "{feedback}"</Text> : null}
             <Text style={styles.modalTimestamp}>Graded on: {timestamp}</Text>
 
-            <TouchableOpacity onPress={handleCloseModal} style={[styles.closeButton, { backgroundColor: primaryColor }]}>
+            <TouchableOpacity onPress={handleCloseModal} style={[styles.closeButton, { backgroundColor: '#AE5BFF', borderColor: primaryColor, borderWidth: 3}]}>
               <Text style={styles.closeButtonText}>Close</Text>
             </TouchableOpacity>
           </View>
@@ -141,21 +141,21 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     borderRadius: 20,
     overflow: 'hidden',
-    shadowColor: '#000000',
-    shadowOffset: { width: 6, height: 6 },
-    shadowOpacity: 0.2,
+    shadowColor: '#F0C9FF',
+    shadowOffset: { width: 10, height: 12 },
+    shadowOpacity: 0.4,
     shadowRadius: 6,
     backgroundColor: 'white',
-    borderWidth: 2,
-    borderColor: '#C88FFF',
+    borderWidth: 4,
+    borderColor: '#F0C9FF',
   },
   tagContainer: {
     marginLeft: 10,
-    backgroundColor: '#F0C9FF',
+    backgroundColor: '#AE5BFF',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
-    borderWidth: 2,
+    borderWidth: 3,
   },
   tagText: {
     color: '#FFFFFF',
@@ -184,7 +184,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   icon: {
-    backgroundColor: '#F0C9FF',
+    backgroundColor: '#AE5BFF',
+    borderWidth: 2,
+    
   },
   title: {
     fontSize: 16,
@@ -201,6 +203,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 24,
     borderRadius: 30,
+    borderWidth: 4,
     marginTop: 8,
   },
   viewMoreButtonText: {
@@ -213,6 +216,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+
   },
   modalContent: {
     width: width * 0.8,
@@ -220,6 +224,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     alignItems: 'center',
+    shadowColor: '#F0C9FF',
+    shadowOffset: { width: 5, height: 5 },
+    shadowOpacity: 0.6,
+    shadowRadius: 6,
+    borderColor: '#F0C9FF',
+    borderWidth: 4,
   },
   modalTitle: {
     fontSize: 18,

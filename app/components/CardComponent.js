@@ -113,7 +113,7 @@ const CardComponent = ({ data, onClose, onView }) => {
                 size={30}
                 icon="file-document"
                 color="white"
-                style={[styles.icon, { backgroundColor: "#F0C9FF" }]}
+                style={[styles.icon, { backgroundColor: "#FF6D5B" }]}
               />
               <View style={styles.tagContainer}>
                 <Text style={styles.tagText}>{assignmentType}</Text>
@@ -146,7 +146,7 @@ const CardComponent = ({ data, onClose, onView }) => {
               size={50}
               icon="file-document"
               color="#FFFFFF"
-              style={[styles.icon, { backgroundColor: "#F0C9FF", marginBottom: 20 }]}
+              style={[styles.icon, { backgroundColor: "#FF6D5B", marginBottom: 20 }]}
             />
             <Text style={styles.modalTitle}>{assignmentName}</Text>
             {description ? <Text style={styles.modalDescription}>{description}</Text> : null}
@@ -173,23 +173,26 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     borderRadius: 20,
     overflow: 'hidden',
-    shadowColor: '#000000',
-    shadowOffset: { width: 6, height: 6 },
-    shadowOpacity: 0.2,
+    shadowColor: 'black',
+    shadowOffset: { width: 8, height: 10 },
+    shadowOpacity: 0.4,
     shadowRadius: 6,
     backgroundColor: 'white', 
-    borderTopWidth: 2,
-    borderBottomWidth: 2,
-    borderLeftWidth: 2,
-    borderRightWidth: 1.3,
-    borderColor: "#F0C9FF",
+    borderTopWidth: 4,
+    borderBottomWidth: 4,
+    borderLeftWidth: 4,
+    borderRightWidth: 4,
+    borderColor: "#F3B289",
+    
   },
   tagContainer: {
     marginLeft: 10,
-    backgroundColor: '#F0C9FF',
+    backgroundColor: '#FF6D5B',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#FFA771',
   },
   tagText: {
     color: '#FFFFFF',
@@ -217,7 +220,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   icon: {
-    backgroundColor: '#141212',
+    backgroundColor: '#FF6D5B',
+    borderWidth: 2,
+    borderColor: '#FFA771',
   },
   title: {
     fontSize: 16,
@@ -231,11 +236,13 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   viewMoreButton: {
-    backgroundColor: '#F0C9FF',
+    backgroundColor: '#FF6D5B',
     paddingVertical: 10,
     paddingHorizontal: 24,
     borderRadius: 30,
     marginTop: 8,
+    borderWidth: 4,
+    borderColor: '#FFA771',
   },
   viewMoreButtonText: {
     color: '#FFFFFF',
@@ -254,6 +261,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     alignItems: 'center',
+    borderWidth: 5,
+    borderColor: '#FFA771'
   },
   modalTitle: {
     fontSize: 18,
@@ -274,11 +283,13 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   closeButton: {
-    backgroundColor: '#C88FFF',
+    backgroundColor: '#FF6D5B',
     paddingVertical: 10,
     paddingHorizontal: 24,
     borderRadius: 30,
     marginTop: 20,
+    borderWidth: 3,
+    borderColor: '#FFA771'
   },
   closeButtonText: {
     color: '#FFFFFF',

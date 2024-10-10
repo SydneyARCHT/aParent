@@ -82,9 +82,9 @@ const AttendanceCardComponent = ({ data, onSeenUpdate }) => {
                 size={30}
                 icon="clipboard-list"
                 color="#FFFFFF"
-                style={[styles.icon, { backgroundColor: primaryColor }]}
+                style={[styles.icon, { backgroundColor: '#5BFF9F', borderColor: '#A7FFCC' }]}
               />
-              <View style={[styles.tagContainer, { borderColor: primaryColor }]}>
+              <View style={[styles.tagContainer, { borderColor: '#A7FFCC' }]}>
                 <Text style={styles.tagText}>Attendance</Text>
               </View>
               {/* Green Dot for Unseen */}
@@ -94,7 +94,7 @@ const AttendanceCardComponent = ({ data, onSeenUpdate }) => {
 
             {/* Button */}
             <View style={styles.actions}>
-              <TouchableOpacity onPress={handleViewMore} style={[styles.viewMoreButton, { backgroundColor: primaryColor }]}>
+              <TouchableOpacity onPress={handleViewMore} style={[styles.viewMoreButton, { backgroundColor: '#5BFF9F', borderColor: '#A7FFCC' }]}>
                 <Text style={styles.viewMoreButtonText}>View More</Text>
               </TouchableOpacity>
             </View>
@@ -144,8 +144,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 6,
     backgroundColor: 'white',
-    borderWidth: 2,
-    borderColor: '#F0C9FF',
+    borderWidth: 4,
+    borderColor: '#A7FFCC'
   },
   tagContainer: {
     marginLeft: 10,
@@ -153,7 +153,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
-    borderWidth: 2,
+    backgroundColor: '#5BFF9F',
+    borderWidth: 4,
+    borderColor: '#A7FFCC'
   },
   tagText: {
     color: '#FFFFFF',
@@ -181,7 +183,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   icon: {
-    backgroundColor: '#F0C9FF',
+    backgroundColor: '#5BFF9F',
+    borderWidth: 4,
+    borderColor: '#A7FFCC'
   },
   title: {
     fontSize: 16,
@@ -199,6 +203,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 30,
     marginTop: 8,
+    borderWidth: 5,
   },
   viewMoreButtonText: {
     color: '#FFFFFF',

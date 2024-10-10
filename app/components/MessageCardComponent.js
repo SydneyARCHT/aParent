@@ -116,7 +116,7 @@ const MessageCardComponent = ({ data, onClose, onSeenUpdate }) => {
                 size={30}
                 icon="message-text"
                 color="white"
-                style={[styles.icon, { backgroundColor: "#C88FFF" }]}
+                style={[styles.icon, { backgroundColor: "#5DEFFF" }]}
               />
               <View style={styles.tagContainer}>
                 <Text style={styles.tagText}>Message</Text>
@@ -146,7 +146,7 @@ const MessageCardComponent = ({ data, onClose, onSeenUpdate }) => {
               size={50}
               icon="message-text"
               color="#FFFFFF"
-              style={[styles.icon, { backgroundColor: '#F0C9FF', marginBottom: 20 }]}
+              style={[styles.icon, { backgroundColor: '#5DEFFF', marginBottom: 20 }]}
             />
             <View style={styles.messageContainer}>
               <Avatar.Image
@@ -184,15 +184,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 6,
     backgroundColor: 'white',
-    borderWidth: 2,
-    borderColor: '#C88FFF',
+    borderWidth: 4,
+    borderColor: '#A7F5FE',
   },
   tagContainer: {
     marginLeft: 10,
-    backgroundColor: '#C88FFF',
+    backgroundColor: '#5DEFFF',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#A7F5FE',
   },
   tagText: {
     color: '#FFFFFF',
@@ -221,7 +223,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   icon: {
-    backgroundColor: '#141212',
+    backgroundColor: '#5DEFFF',
+    borderWidth: 2,
+    borderColor: '#A7F5FE',
   },
   title: {
     fontSize: 16,
@@ -235,11 +239,13 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   viewMoreButton: {
-    backgroundColor: '#C88FFF',
+    backgroundColor: '#5DEFFF',
     paddingVertical: 10,
     paddingHorizontal: 24,
     borderRadius: 30,
     marginTop: 8,
+    borderWidth: 4,
+    borderColor: '#A7F5FE',
   },
   viewMoreButtonText: {
     color: '#FFFFFF',
@@ -258,6 +264,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     alignItems: 'center',
+    borderWidth: 5,
+    borderColor: '#A7F5FE'
   },
   messageContainer: {
     flexDirection: 'row',
@@ -288,10 +296,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   closeButton: {
-    backgroundColor: '#C88FFF',
+    backgroundColor: '#5DEFFF',
     paddingVertical: 10,
     paddingHorizontal: 24,
     borderRadius: 30,
+    borderWidth: 4,
+    borderColor: '#A7F5FE',
   },
   closeButtonText: {
     color: '#FFFFFF',

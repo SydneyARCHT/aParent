@@ -312,14 +312,14 @@ function ParentScreenContent() {
     <SafeAreaView style={styles.safeArea}>
       {/* Filter Icon in the top-right corner */}
       <TouchableOpacity style={styles.filterIcon} onPress={() => setFilterDropdownVisible(!filterDropdownVisible)}>
-        <MaterialIcons name="filter-list" size={40} color="#333" />
+        <MaterialIcons name="filter-list" size={40} color="#e91e63" />
       </TouchableOpacity>
 
       {/* Filter Dropdown */}
       {filterDropdownVisible && (
         <View style={styles.filterDropdownContainer}>
           <View style={styles.filterItem}>
-            <FontAwesome5 name="dot-circle" size={16} color="green" />
+            <FontAwesome5 name="eye" size={16} color="green" />
             <Text style={styles.filterText}>Not Seen</Text>
             <TouchableOpacity onPress={() => onFilterChange('notSeen')}>
               <FontAwesome
@@ -330,7 +330,7 @@ function ParentScreenContent() {
             </TouchableOpacity>
           </View>
           <View style={styles.filterItem}>
-            <FontAwesome5 name="book" size={16} color="blue" />
+            <FontAwesome5 name="book" size={16} color="#FF6D5B" />
             <Text style={styles.filterText}>Assignments</Text>
             <TouchableOpacity onPress={() => onFilterChange('assignments')}>
               <FontAwesome
@@ -341,7 +341,7 @@ function ParentScreenContent() {
             </TouchableOpacity>
           </View>
           <View style={styles.filterItem}>
-            <FontAwesome5 name="file-alt" size={16} color="orange" />
+            <FontAwesome5 name="file-alt" size={16} color="#AE5BFF" />
             <Text style={styles.filterText}>Grades</Text>
             <TouchableOpacity onPress={() => onFilterChange('grades')}>
               <FontAwesome
@@ -352,7 +352,7 @@ function ParentScreenContent() {
             </TouchableOpacity>
           </View>
           <View style={styles.filterItem}>
-            <FontAwesome5 name="comments" size={16} color="purple" />
+            <FontAwesome5 name="comments" size={16} color='#5DEFFF' />
             <Text style={styles.filterText}>Messages</Text>
             <TouchableOpacity onPress={() => onFilterChange('messages')}>
               <FontAwesome
@@ -363,7 +363,7 @@ function ParentScreenContent() {
             </TouchableOpacity>
           </View>
           <View style={styles.filterItem}>
-            <Feather name="check-circle" size={16} color="red" />
+            <Feather name="check-circle" size={16} color="#5BFF9F" />
             <Text style={styles.filterText}>Attendance</Text>
             <TouchableOpacity onPress={() => onFilterChange('attendance')}>
               <FontAwesome
@@ -516,7 +516,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   neumorphicButton: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#e91e63',
     borderRadius: 10,
     padding: 10,
     shadowColor: '#000',
@@ -525,12 +525,12 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     marginBottom: 20,  // Moved slightly down
     marginLeft: 20,
-    marginTop: 10,
+    marginTop: 20,
     alignSelf: 'flex-start',
   },
   buttonText: {
     fontSize: 16,
-    color: '#333',
+    color: 'white',
     fontWeight: 'bold',
   },
   modalContainer: {
