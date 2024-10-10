@@ -1,8 +1,8 @@
 import React from 'react';
 import { SafeAreaView, View, Text, StyleSheet, ScrollView, FlatList, TouchableOpacity, Image, Linking } from 'react-native';
-import DrawerComponent from '../navigation/DrawerComponent';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { MaterialIcons } from '@expo/vector-icons';
+import DrawerComponent from '../navigation/DrawerComponent';
 
 const Drawer = createDrawerNavigator();
 
@@ -85,6 +85,45 @@ const ResourcesScreenContent = () => {
   );
 };
 
+const CustomHeaderTitle = () => {
+  return (
+    <View style={styles.headerTitleContainer}>
+      <Text style={[styles.headerLetter, { color: '#5BFF9F' }]}>a</Text>
+      <Text style={[styles.headerLetter, { color: '#AE5BFF' }]}>P</Text>
+      <Text style={[styles.headerLetter, { color: '#FF6D5B' }]}>a</Text>
+      <Text style={[styles.headerLetter, { color: '#FFC85B' }]}>r</Text>
+      <Text style={[styles.headerLetter, { color: '#5DEFFF' }]}>e</Text>
+      <Text style={[styles.headerLetter, { color: '#AE5BFF' }]}>n</Text>
+      <Text style={[styles.headerLetter, { color: '#AE5BFF' }]}>t</Text>
+    </View>
+  );
+};
+
+
+const ResourcesScreen = () => {
+  const parentAvatar = 'https://i.pravatar.cc/300';
+
+  return (
+    <Drawer.Navigator drawerContent={(props) => <DrawerComponent {...props} />}>
+      <Drawer.Screen
+        name="Resources"
+        component={ResourcesScreenContent}
+        options={{
+          headerStyle: {
+            height: 180,
+          },
+          headerTitle: () => <CustomHeaderTitle />,
+          headerRight: () => (
+            <TouchableOpacity style={styles.avatarContainer} onPress={() => console.log('Avatar clicked')}>
+              <Image source={{ uri: parentAvatar }} style={styles.avatar} />
+            </TouchableOpacity>
+          ),
+        }}
+      />
+    </Drawer.Navigator>
+  );
+};
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -115,36 +154,45 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
     borderRadius: 10,
     width: 320,
-    alignItems: 'flex-start', 
-    height: 220
+    alignItems: 'flex-start',
+    height: 220,
   },
   cardImage: {
     width: 300,
     height: 150,
     borderRadius: 10,
-    marginTop: 0, 
+    marginTop: 0,
   },
   cardTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    textAlign: 'left', 
-    marginBottom: 4, 
+    textAlign: 'left',
+    marginBottom: 4,
   },
   cardSubtitle: {
     fontSize: 17,
     color: '#666',
-    textAlign: 'left', 
-    marginBottom: 8, 
+    textAlign: 'left',
+    marginBottom: 8,
+  },
+  avatarContainer: {
+    marginRight: 20,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  headerTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerLetter: {
+    fontSize: 60,
+    fontWeight: 'bold',
+    marginTop: 60,
+    fontFamily: 'BalsamiqSans_400Regular',
   },
 });
-
-
-const ResourcesScreen = () => {
-  return (
-    <Drawer.Navigator drawerContent={(props) => <DrawerComponent {...props} />}>
-      <Drawer.Screen name="Resources" component={ResourcesScreenContent} />
-    </Drawer.Navigator>
-  );
-};
 
 export default ResourcesScreen;

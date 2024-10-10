@@ -1,9 +1,8 @@
-import * as React from 'react';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Drawer } from 'react-native-paper';
 import { ScrollView, StyleSheet, SafeAreaView, Alert, View, Text, Image } from 'react-native';
 import { signOut } from 'firebase/auth';
-import { collection, doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { auth, database } from '../config/firebaseConfig';
 
 const DrawerComponent = ({ navigation }) => {
@@ -23,7 +22,7 @@ const DrawerComponent = ({ navigation }) => {
           if (userData.userType === 'parent') {
             const firstName = userData.name.split(' ')[0];
             setParentFirstName(firstName || 'Parent'); 
-            setParentAvatar(userData.avatar || 'https://i.pravatar.cc/300'); // Use a default avatar if none is set
+            setParentAvatar(userData.avatar || 'https://i.pravatar.cc/300'); 
           }
         }
       }
@@ -52,6 +51,7 @@ const DrawerComponent = ({ navigation }) => {
           </View>
           <Drawer.Item
             label="Profile"
+            labelStyle={styles.drawerItemLabel}
             active={active === 'first'}
             onPress={() => {
               setActive('first');
@@ -60,6 +60,7 @@ const DrawerComponent = ({ navigation }) => {
           />
           <Drawer.Item
             label="Account Settings"
+            labelStyle={styles.drawerItemLabel}
             active={active === 'second'}
             onPress={() => {
               setActive('second');
@@ -68,6 +69,7 @@ const DrawerComponent = ({ navigation }) => {
           />
           <Drawer.Item
             label="Log Out"
+            labelStyle={styles.logoutLabel}
             onPress={handleLogout}
           />
         </Drawer.Section>
@@ -79,6 +81,7 @@ const DrawerComponent = ({ navigation }) => {
 const styles = StyleSheet.create({
   drawerContainer: {
     flex: 1,
+    backgroundColor: '#f0f0f0', 
     paddingTop: 20,
   },
   drawerSection: {
@@ -90,14 +93,22 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     marginRight: 16,
   },
   title: {
+    fontSize: 18,
+    color: 'black', 
+  },
+  drawerItemLabel: {
+    color: '#3f51b5', 
     fontSize: 16,
-    fontWeight: 'bold',
+  },
+  logoutLabel: {
+    color: '#e53935', 
+    fontSize: 16,
   },
 });
 

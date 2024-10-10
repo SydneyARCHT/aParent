@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, Image } from 'react-native';
+import { View, Text, TouchableOpacity, SafeAreaView, Image, StyleSheet } from 'react-native';
 import { auth, database } from '../config/firebaseConfig';
 import { collection, query, where, getDocs, doc, getDoc, orderBy, limit } from 'firebase/firestore';
 import DrawerComponent from '../navigation/DrawerComponent';
@@ -123,13 +123,63 @@ function ChatScreenContent({ navigation }) {
 }
 
 
+const CustomHeaderTitle = () => {
+  return (
+    <View style={styles.headerTitleContainer}>
+      <Text style={[styles.headerLetter, { color: '#5BFF9F' }]}>a</Text>
+      <Text style={[styles.headerLetter, { color: '#AE5BFF' }]}>P</Text>
+      <Text style={[styles.headerLetter, { color: '#FF6D5B' }]}>a</Text>
+      <Text style={[styles.headerLetter, { color: '#FFC85B' }]}>r</Text>
+      <Text style={[styles.headerLetter, { color: '#5DEFFF' }]}>e</Text>
+      <Text style={[styles.headerLetter, { color: '#AE5BFF' }]}>n</Text>
+      <Text style={[styles.headerLetter, { color: '#AE5BFF' }]}>t</Text>
+    </View>
+  );
+};
+
 const ChatScreen = () => {
+  const parentAvatar = 'https://i.pravatar.cc/300';
+
   return (
     <Drawer.Navigator drawerContent={(props) => <DrawerComponent {...props} />}>
-      <Drawer.Screen name="Messages" component={ChatScreenContent} />
+      <Drawer.Screen
+        name="Messages"
+        component={ChatScreenContent}
+        options={{
+          headerStyle: {
+            height: 180,
+          },
+          headerTitle: () => <CustomHeaderTitle />,
+          headerRight: () => (
+            <TouchableOpacity style={styles.avatarContainer} onPress={() => console.log('Avatar clicked')}>
+              <Image source={{ uri: parentAvatar }} style={styles.avatar} />
+            </TouchableOpacity>
+          ),
+        }}
+      />
     </Drawer.Navigator>
   );
 };
 
+const styles = StyleSheet.create({
+  headerTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerLetter: {
+    fontSize: 60,
+    fontWeight: 'bold',
+    marginTop: 60,
+    fontFamily: 'BalsamiqSans_400Regular',
+  },
+  avatarContainer: {
+    marginRight: 20,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+});
 
 export default ChatScreen;
