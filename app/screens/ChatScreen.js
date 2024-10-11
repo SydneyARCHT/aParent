@@ -147,7 +147,7 @@ const ChatScreen = () => {
         component={ChatScreenContent}
         options={{
           headerStyle: {
-            height: 180,
+            height: 140,
           },
           headerTitle: () => <CustomHeaderTitle />,
           headerRight: () => (
@@ -169,7 +169,6 @@ const styles = StyleSheet.create({
   headerLetter: {
     fontSize: 40,
     fontWeight: 'bold',
-    marginTop: 30,
     fontFamily: 'BalsamiqSans_400Regular',
   },
   avatarContainer: {
