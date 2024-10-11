@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, ScrollView, SafeAreaView, RefreshControl, ActivityIndicator, TouchableOpacity, Text, Modal, Image } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { StyleSheet, View, ScrollView, SafeAreaView, RefreshControl, ActivityIndicator, TouchableOpacity, Text, Modal, Image, Animated, Dimensions } from 'react-native';
 import { collection, getDocs, query, where, orderBy, doc, getDoc } from 'firebase/firestore';
 import { auth, database } from '../config/firebaseConfig';
 import CardComponent from '../components/CardComponent';
@@ -9,11 +9,59 @@ import AttendanceCardComponent from '../components/AttendanceCardComponent';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import DrawerComponent from '../navigation/DrawerComponent';
 import { CalendarList } from 'react-native-calendars';
-import moment from 'moment';
-import { MaterialIcons, FontAwesome, FontAwesome5, Feather } from '@expo/vector-icons'; // Importing icons
-
+import { MaterialIcons, FontAwesome, FontAwesome5, Feather } from '@expo/vector-icons';
 
 const Drawer = createDrawerNavigator();
+const bubbleColors = ['#5BFF9F', '#AE5BFF', '#FF6D5B', '#FFC85B', '#5DEFFF'];
+
+// Helper function to generate random bubbles
+const generateRandomBubbles = (count) => {
+  return Array.from({ length: count }).map((_, index) => {
+    return <AnimatedBubble key={index} />;
+  });
+};
+
+const AnimatedBubble = () => {
+  const { width, height } = Dimensions.get('window');
+  const size = Math.random() * 100 + 50; // Random size between 50 and 150
+  const backgroundColor =
+    bubbleColors[Math.floor(Math.random() * bubbleColors.length)] + '50'; // Random color with transparency
+
+  // Generate a random starting position
+  const initialX = Math.random() * width;
+  const initialY = Math.random() * height;
+  const position = useRef(new Animated.ValueXY({ x: initialX, y: initialY })).current;
+
+  useEffect(() => {
+    const moveBubble = () => {
+      Animated.timing(position, {
+        toValue: {
+          x: position.x._value - Math.random() * 100 - 50, // Move leftward
+          y: position.y._value - Math.random() * 100 - 50, // Move upward
+        },
+        duration: Math.random() * 4000 + 3000, // Random duration between 3s and 7s
+        useNativeDriver: false,
+      }).start(() => moveBubble()); // Start again for continuous movement
+    };
+
+    moveBubble();
+  }, [position]);
+
+  return (
+    <Animated.View
+      style={[
+        styles.bubble,
+        {
+          width: size,
+          height: size,
+          backgroundColor,
+          borderRadius: size / 2,
+          transform: position.getTranslateTransform(),
+        },
+      ]}
+    />
+  );
+};
 
 function ParentScreenContent() {
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -25,7 +73,6 @@ function ParentScreenContent() {
   const [calendarVisible, setCalendarVisible] = useState(false); 
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
-  const [selectingStartDate, setSelectingStartDate] = useState(true);
   const [filteredData, setFilteredData] = useState([]);
   
   // Filter menu state
@@ -281,12 +328,10 @@ function ParentScreenContent() {
   };
 
   const handleDayPress = (day) => {
-    if (selectingStartDate) {
+    if (!startDate) {
       setStartDate(day.dateString);
-      setSelectingStartDate(false);
     } else {
       setEndDate(day.dateString);
-      setSelectingStartDate(true);
     }
   };
 
@@ -310,7 +355,11 @@ function ParentScreenContent() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Filter Icon in the top-right corner */}
+      <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
+        {generateRandomBubbles(35)} 
+      </View>
+
+      {/* Filter Icon */}
       <TouchableOpacity style={styles.filterIcon} onPress={() => setFilterDropdownVisible(!filterDropdownVisible)}>
         <MaterialIcons name="filter-list" size={40} color="#e91e63" />
       </TouchableOpacity>
@@ -322,71 +371,47 @@ function ParentScreenContent() {
             <FontAwesome5 name="eye" size={16} color="green" />
             <Text style={styles.filterText}>Not Seen</Text>
             <TouchableOpacity onPress={() => onFilterChange('notSeen')}>
-              <FontAwesome
-                name={selectedFilters.notSeen ? 'check-square' : 'square-o'}
-                size={20}
-                color="black"
-              />
+              <FontAwesome name={selectedFilters.notSeen ? 'check-square' : 'square-o'} size={20} color="black" />
             </TouchableOpacity>
           </View>
           <View style={styles.filterItem}>
             <FontAwesome5 name="book" size={16} color="#FF6D5B" />
             <Text style={styles.filterText}>Assignments</Text>
             <TouchableOpacity onPress={() => onFilterChange('assignments')}>
-              <FontAwesome
-                name={selectedFilters.assignments ? 'check-square' : 'square-o'}
-                size={20}
-                color="black"
-              />
+              <FontAwesome name={selectedFilters.assignments ? 'check-square' : 'square-o'} size={20} color="black" />
             </TouchableOpacity>
           </View>
           <View style={styles.filterItem}>
             <FontAwesome5 name="file-alt" size={16} color="#AE5BFF" />
             <Text style={styles.filterText}>Grades</Text>
             <TouchableOpacity onPress={() => onFilterChange('grades')}>
-              <FontAwesome
-                name={selectedFilters.grades ? 'check-square' : 'square-o'}
-                size={20}
-                color="black"
-              />
+              <FontAwesome name={selectedFilters.grades ? 'check-square' : 'square-o'} size={20} color="black" />
             </TouchableOpacity>
           </View>
           <View style={styles.filterItem}>
             <FontAwesome5 name="comments" size={16} color='#5DEFFF' />
             <Text style={styles.filterText}>Messages</Text>
             <TouchableOpacity onPress={() => onFilterChange('messages')}>
-              <FontAwesome
-                name={selectedFilters.messages ? 'check-square' : 'square-o'}
-                size={20}
-                color="black"
-              />
+              <FontAwesome name={selectedFilters.messages ? 'check-square' : 'square-o'} size={20} color="black" />
             </TouchableOpacity>
           </View>
           <View style={styles.filterItem}>
             <Feather name="check-circle" size={16} color="#5BFF9F" />
             <Text style={styles.filterText}>Attendance</Text>
             <TouchableOpacity onPress={() => onFilterChange('attendance')}>
-              <FontAwesome
-                name={selectedFilters.attendance ? 'check-square' : 'square-o'}
-                size={20}
-                color="black"
-              />
+              <FontAwesome name={selectedFilters.attendance ? 'check-square' : 'square-o'} size={20} color="black" />
             </TouchableOpacity>
           </View>
         </View>
       )}
 
+      {/* Date Range Button */}
       <TouchableOpacity style={styles.neumorphicButton} onPress={() => setCalendarVisible(true)}>
         <Text style={styles.buttonText}>Select Date Range</Text>
       </TouchableOpacity>
 
       {/* Calendar Modal */}
-      <Modal
-        visible={calendarVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setCalendarVisible(false)}
-      >
+      <Modal visible={calendarVisible} animationType="slide" transparent={true} onRequestClose={() => setCalendarVisible(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <TouchableOpacity onPress={() => setCalendarVisible(false)} style={styles.closeButton}>
@@ -434,14 +459,11 @@ function ParentScreenContent() {
         </View>
       </Modal>
 
+      {/* Main content */}
       <ScrollView
         contentContainerStyle={styles.scrollViewContainer}
         refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={onRefresh}
-            colors={['#e91e63']}
-          />
+          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={['#e91e63']} />
         }
       >
         <View style={styles.container}>
@@ -513,19 +535,19 @@ const styles = StyleSheet.create({
   },
   filterIcon: {
     position: 'absolute',
-    top: 20,  // Moved slightly down
-    right: 20, // Moved slightly left
+    top: 20,
+    right: 20,
     zIndex: 10,
   },
   filterDropdownContainer: {
     position: 'absolute',
-    top: 60,  // Positioned below the filter icon
+    top: 60,
     right: 20,
     backgroundColor: '#fff',
     borderColor: "black",
     borderWidth: 1,
     padding: 10,
-    width: 180, // Increased the width to accommodate text, icons, and checkboxes
+    width: 180,
     borderRadius: 10,
     zIndex: 10,
     shadowColor: '#000',
@@ -553,7 +575,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: -2, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 3,
-    marginBottom: 20,  
+    marginBottom: 20,
     marginLeft: 20,
     marginTop: 15,
     alignSelf: 'flex-start',
@@ -654,13 +676,8 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
   },
-  avatarContainer: {
-    marginRight: 20,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  bubble: {
+    position: 'absolute',
   },
   headerTitleContainer: {
     flexDirection: 'row',
@@ -669,10 +686,16 @@ const styles = StyleSheet.create({
   headerLetter: {
     fontSize: 40,
     fontWeight: 'bold',
-    marginTop: 0,
     fontFamily: 'BalsamiqSans_400Regular',
   },
+  avatarContainer: {
+    marginRight: 20,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
 });
-
 
 export default ParentScreen;
