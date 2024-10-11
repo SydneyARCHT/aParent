@@ -110,7 +110,7 @@ const ResourcesScreen = () => {
         component={ResourcesScreenContent}
         options={{
           headerStyle: {
-            height: 180,
+            height: 140,
           },
           headerTitle: () => <CustomHeaderTitle />,
           headerRight: () => (
@@ -188,9 +188,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerLetter: {
-    fontSize: 60,
+    fontSize: 40,
     fontWeight: 'bold',
-    marginTop: 60,
     fontFamily: 'BalsamiqSans_400Regular',
   },
 });
