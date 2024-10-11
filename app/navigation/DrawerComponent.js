@@ -5,7 +5,7 @@ import { signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, database } from '../config/firebaseConfig';
 
-const DrawerComponent = ({ navigation }) => {
+const DrawerComponent = () => {
   const [active, setActive] = useState('');
   const [parentFirstName, setParentFirstName] = useState('');
   const [parentAvatar, setParentAvatar] = useState('');
@@ -41,6 +41,22 @@ const DrawerComponent = ({ navigation }) => {
     }
   };
 
+  const handleProfileAlert = () => {
+    Alert.alert(
+      'Profile',
+      'Surprise, this section does not exist yet!',
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handleAccountSettingsAlert = () => {
+    Alert.alert(
+      'Account Settings',
+      'Neither does this one.',
+      [{ text: 'OK' }]
+    );
+  };
+
   return (
     <SafeAreaView style={styles.drawerContainer}>
       <ScrollView>
@@ -55,7 +71,7 @@ const DrawerComponent = ({ navigation }) => {
             active={active === 'first'}
             onPress={() => {
               setActive('first');
-              navigation.navigate('FirstScreen');
+              handleProfileAlert();
             }}
           />
           <Drawer.Item
@@ -64,7 +80,7 @@ const DrawerComponent = ({ navigation }) => {
             active={active === 'second'}
             onPress={() => {
               setActive('second');
-              navigation.navigate('SecondScreen');
+              handleAccountSettingsAlert();
             }}
           />
           <Drawer.Item
