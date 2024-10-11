@@ -1,35 +1,70 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, FlatList, SafeAreaView } from 'react-native';
+
+const behaviorData = [
+  {
+    id: '1',
+    title: 'Positive Mindset',
+    subtitle: 'Satisfactory',
+    position: 'topLeftImage',
+    image: 'https://cdn.mos.cms.futurecdn.net/xaycNDmeyxpHDrPqU6LmaD.jpg',
+  },
+  {
+    id: '2',
+    title: 'Thinking Skills',
+    subtitle: 'Needs Improvement',
+    position: 'topRightImage',
+    image: 'https://cdn.mos.cms.futurecdn.net/xaycNDmeyxpHDrPqU6LmaD.jpg',
+  },
+  {
+    id: '3',
+    title: 'Community Mindset',
+    subtitle: 'Good',
+    position: 'bottomLeftImage',
+    image: 'https://cdn.mos.cms.futurecdn.net/xaycNDmeyxpHDrPqU6LmaD.jpg',
+  },
+  {
+    id: '4',
+    title: 'Interpersonal Skills',
+    subtitle: 'Average',
+    position: 'bottomRightImage',
+    image: 'https://cdn.mos.cms.futurecdn.net/xaycNDmeyxpHDrPqU6LmaD.jpg',
+  },
+];
 
 const BehaviorScreen = () => {
+  const renderQuadrant = ({ item }) => {
+    const positionStyle = styles[item.position] || {};
+
+    return (
+      <ImageBackground
+        source={{ uri: item.image }}
+        style={[styles.quadrant, positionStyle]}
+        imageStyle={[styles.imageStyle, positionStyle]}
+        resizeMode="cover"
+      >
+        <View style={styles.overlay}>
+          <Text style={styles.quadrantTitle}>{item.title}</Text>
+          <Text style={styles.quadrantSubtitle}>{item.subtitle}</Text>
+        </View>
+      </ImageBackground>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <Text style={styles.title}>Behavior</Text>
-
-        <View style={styles.row}>
-          <View style={[styles.quadrant, styles.topLeft, { backgroundColor: '#c69af6' }]}>
-            <Text style={styles.quadrantTitle}>Positive Mindset</Text>
-            <Text style={styles.quadrantSubtitle}>Satisfactory</Text>
-          </View>
-          <View style={[styles.quadrant, styles.topRight, { backgroundColor: '#81e6d9' }]}>
-            <Text style={styles.quadrantTitle}>Thinking Skills</Text>
-            <Text style={styles.quadrantSubtitle}>Needs Improvement</Text>
-          </View>
-        </View>
-
-        <View style={styles.row}>
-          <View style={[styles.quadrant, styles.bottomLeft, { backgroundColor: '#c69af6' }]}>
-            <Text style={styles.quadrantTitle}>Community Mindset</Text>
-            <Text style={styles.quadrantSubtitle}>Good</Text>
-          </View>
-          <View style={[styles.quadrant, styles.bottomRight, { backgroundColor: '#f6ad55' }]}>
-            <Text style={styles.quadrantTitle}>Interpersonal Skills</Text>
-            <Text style={styles.quadrantSubtitle}>Average</Text>
-          </View>
-        </View>
-
-      </ScrollView>
+      <View style={styles.container}>
+        <FlatList
+          data={behaviorData}
+          renderItem={renderQuadrant}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          contentContainerStyle={styles.listContainer}
+          ListHeaderComponent={() => (
+            <Text style={styles.header}>Behavior</Text>
+          )}
+        />
+      </View>
     </SafeAreaView>
   );
 };
@@ -37,69 +72,80 @@ const BehaviorScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#fff',
   },
-  scrollContainer: {
+  container: {
+    flex: 1,
+    justifyContent: 'flex-start',
     alignItems: 'center',
     paddingTop: 20,
-    paddingBottom: 20, 
   },
-  title: {
+  listContainer: {
+    alignItems: 'center',
+  },
+  header: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
+    textAlign: 'center',
+    marginBottom: 60,
     color: '#333',
   },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '90%',
-    marginBottom: 20,
-  },
   quadrant: {
-    width: '45%', 
-    height: 180,  
+    width: 189,
+    height: 270,
+    margin: 5,
+    borderRadius: 20,
+    overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 30, 
+  },
+  imageStyle: {
+    borderRadius: 20,
+  },
+  overlay: {
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
     padding: 10,
-  },
-  topLeft: {
-    borderTopLeftRadius: 150, 
-    borderTopRightRadius: 0,   
-    borderBottomLeftRadius: 0,
-  },
-  topRight: {
-    borderTopRightRadius: 150, 
-    borderTopLeftRadius: 0, 
-    borderBottomRightRadius: 0, 
-  },
-  bottomLeft: {
-    borderBottomLeftRadius: 150,
-    borderTopLeftRadius: 0, 
-    borderBottomRightRadius: 0,    
-  },
-  bottomRight: {
-    borderBottomRightRadius: 150, 
-    borderTopRightRadius: 0, 
-    borderBottomLeftRadius: 0,    
+    borderRadius: 10,
   },
   quadrantTitle: {
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
-    color: '#3d3d3d',
+    color: '#fff',
     marginBottom: 5,
   },
   quadrantSubtitle: {
     fontSize: 14,
     textAlign: 'center',
-    color: '#3d3d3d',
+    color: '#fff',
     backgroundColor: 'rgba(0, 0, 0, 0.1)',
     paddingHorizontal: 10,
     paddingVertical: 2,
     borderRadius: 8,
   },
+  topLeftImage: {
+    borderTopLeftRadius: 160,
+    borderTopRightRadius: 0,
+    borderBottomLeftRadius: 0,
+  },
+  topRightImage: {
+    borderTopRightRadius: 160,
+    borderTopLeftRadius: 0,
+    borderBottomRightRadius: 0,
+  },
+  bottomLeftImage: {
+    borderBottomLeftRadius: 160,
+    borderTopLeftRadius: 0,
+    borderBottomRightRadius: 0,
+  },
+  bottomRightImage: {
+    borderBottomRightRadius: 160,
+    borderTopRightRadius: 0,
+    borderBottomLeftRadius: 0,
+  },
 });
 
 export default BehaviorScreen;
+
+
+
