@@ -46,7 +46,7 @@ const DrawerComponent = ({ navigation }) => {
       <ScrollView>
         <Drawer.Section style={styles.drawerSection}>
           <View style={styles.userInfoSection}>
-            <Image source={{ uri: parentAvatar }} style={styles.avatar} />
+            <Image source={{ uri: null }} style={styles.avatar} />
             <Text style={styles.title}>{parentFirstName}</Text>
           </View>
           <Drawer.Item
