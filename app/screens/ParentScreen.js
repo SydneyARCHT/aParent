@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, ScrollView, SafeAreaView, RefreshControl, ActivityIndicator, TouchableOpacity, Text, Modal } from 'react-native';
+import { StyleSheet, View, ScrollView, SafeAreaView, RefreshControl, ActivityIndicator, TouchableOpacity, Text, Modal, Image } from 'react-native';
 import { collection, getDocs, query, where, orderBy, doc, getDoc } from 'firebase/firestore';
 import { auth, database } from '../config/firebaseConfig';
 import CardComponent from '../components/CardComponent';
@@ -462,10 +462,40 @@ function ParentScreenContent() {
   );
 }
 
+const CustomHeaderTitle = () => {
+  return (
+    <View style={styles.headerTitleContainer}>
+      <Text style={[styles.headerLetter, { color: '#5BFF9F' }]}>a</Text>
+      <Text style={[styles.headerLetter, { color: '#AE5BFF' }]}>P</Text>
+      <Text style={[styles.headerLetter, { color: '#FF6D5B' }]}>a</Text>
+      <Text style={[styles.headerLetter, { color: '#FFC85B' }]}>r</Text>
+      <Text style={[styles.headerLetter, { color: '#5DEFFF' }]}>e</Text>
+      <Text style={[styles.headerLetter, { color: '#AE5BFF' }]}>n</Text>
+      <Text style={[styles.headerLetter, { color: '#AE5BFF' }]}>t</Text>
+    </View>
+  );
+};
+
 const ParentScreen = () => {
+  const parentAvatar = 'https://i.pravatar.cc/300';
+
   return (
     <Drawer.Navigator drawerContent={(props) => <DrawerComponent {...props} />}>
-      <Drawer.Screen name="aParent" component={ParentScreenContent} />
+      <Drawer.Screen
+        name="Home"
+        component={ParentScreenContent}
+        options={{
+          headerStyle: {
+            height: 140,
+          },
+          headerTitle: () => <CustomHeaderTitle />,
+          headerRight: () => (
+            <TouchableOpacity style={styles.avatarContainer} onPress={() => console.log('Avatar clicked')}>
+              <Image source={{ uri: parentAvatar }} style={styles.avatar} />
+            </TouchableOpacity>
+          ),
+        }}
+      />
     </Drawer.Navigator>
   );
 };
@@ -516,21 +546,21 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   neumorphicButton: {
-    backgroundColor: '#e91e63',
+    backgroundColor: '#f0f0f0',
     borderRadius: 10,
     padding: 10,
     shadowColor: '#000',
     shadowOffset: { width: -2, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 3,
-    marginBottom: 20,  // Moved slightly down
+    marginBottom: 20,  
     marginLeft: 20,
-    marginTop: 20,
+    marginTop: 10,
     alignSelf: 'flex-start',
   },
   buttonText: {
     fontSize: 16,
-    color: 'white',
+    color: '#333',
     fontWeight: 'bold',
   },
   modalContainer: {
@@ -623,6 +653,25 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
   },
+  avatarContainer: {
+    marginRight: 20,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  headerTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerLetter: {
+    fontSize: 40,
+    fontWeight: 'bold',
+    marginTop: 0,
+    fontFamily: 'BalsamiqSans_400Regular',
+  },
 });
+
 
 export default ParentScreen;

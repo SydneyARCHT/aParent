@@ -3,8 +3,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { View, ActivityIndicator } from 'react-native';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth, database } from './app/config/firebaseConfig'; // Import database config for Firestore
-import { doc, getDoc } from 'firebase/firestore'; // Import Firestore functions
+import { auth, database } from './app/config/firebaseConfig';
+import { doc, getDoc } from 'firebase/firestore';
 import { Provider } from 'react-redux';
 import store from './app/store';
 import WelcomeScreen from './app/screens/WelcomeScreen';
@@ -12,8 +12,7 @@ import LoginScreen from './app/screens/LoginScreen';
 import RegisterScreen from './app/screens/RegisterScreen';
 import MyTabs from './app/navigation/BottomNavBar'; 
 import TeacherTabs from './app/TeacherSection/TeacherNavigation/TeacherTabs';
-import ChatStackNavigator from './app/navigation/ChatStackNavigator';
-
+import { useFonts, BalsamiqSans_400Regular, BalsamiqSans_700Bold } from '@expo-google-fonts/balsamiq-sans';
 
 // Create a stack navigator
 const Stack = createStackNavigator();
@@ -41,11 +40,10 @@ function AuthStack() {
   );
 }
 
-
 function RootNavigator() {
   const { user, setUser } = useContext(AuthenticatedUserContext);
   const [isLoading, setIsLoading] = useState(true);
-  const [userType, setUserType] = useState(null); 
+  const [userType, setUserType] = useState(null);
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async authenticatedUser => {
@@ -55,7 +53,7 @@ function RootNavigator() {
         const userDoc = await getDoc(doc(database, 'users', authenticatedUser.uid));
         if (userDoc.exists()) {
           const data = userDoc.data();
-          setUserType(data.userType); 
+          setUserType(data.userType);
         }
       }
 
@@ -76,15 +74,29 @@ function RootNavigator() {
   return (
     <NavigationContainer>
       {user ? (
-        userType === 'parent' ? <MyTabs /> : <TeacherTabs /> 
+        userType === 'parent' ? <MyTabs /> : <TeacherTabs />
       ) : (
-        <AuthStack />  
+        <AuthStack />
       )}
     </NavigationContainer>
   );
 }
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    BalsamiqSans_400Regular,
+    BalsamiqSans_700Bold,
+  });
+
+  // Show a fallback if the fonts are not loaded yet
+  if (!fontsLoaded) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
   return (
     <Provider store={store}>
       <AuthenticatedUserProvider>

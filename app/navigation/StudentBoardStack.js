@@ -5,6 +5,8 @@ import GradesScreen from '../screens/GradesScreen';
 import AssignmentsScreen from '../screens/AssignmentsScreen';
 import AttendanceScreen from '../screens/AttendanceScreen';
 import BehaviorScreen from '../screens/BehaviorScreen';
+import GradeItemsScreen from '../screens/GradeItemsScreen';
+
 
 const Stack = createStackNavigator();
 
@@ -13,6 +15,7 @@ function StudentBoardStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="StudentBoard" component={StudentBoardScreen} />
       <Stack.Screen name="Grades" component={GradesScreen} />
+      <Stack.Screen name="GradeItems" component={GradeItemsScreen} />
       <Stack.Screen name="Assignments" component={AssignmentsScreen} /> 
       <Stack.Screen name="Attendance" component={AttendanceScreen} />
       <Stack.Screen name="Behavior" component={BehaviorScreen} /> 

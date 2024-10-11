@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Text, View, StyleSheet, FlatList, SafeAreaView, ActivityIndicator } from 'react-native';
 import { List, Divider, useTheme } from 'react-native-paper';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { auth, database } from '../config/firebaseConfig'; // Firebase configuration
-import { getDoc, doc } from 'firebase/firestore';
+import { useNavigation } from '@react-navigation/native'; // Import navigation
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
+import { auth, database } from '../config/firebaseConfig'; // Firebase config
 
 // Function to generate random color for the hat icon
 const getRandomColor = () => {
@@ -25,6 +25,7 @@ function GradesScreen() {
   const [loading, setLoading] = useState(true);
   const [classData, setClassData] = useState([]);
   const [studentId, setStudentId] = useState(null);
+  const navigation = useNavigation(); // Use navigation
 
   // Fetch parent, student, and class data
   const fetchClassesAndGrades = async () => {
@@ -80,6 +81,7 @@ function GradesScreen() {
         title={item.className} // Display class name
         right={() => <Text style={styles.grade}>{getRandomGrade()}</Text>} // Placeholder for grade
         left={() => <List.Icon icon="school" color={getRandomColor()} />} // Random colored hat icon
+        onPress={() => navigation.navigate('GradeItems', { classId: item.id, studentId })} // Navigate to GradeItemsScreen with classId and studentId
         style={styles.listItem}
       />
       <Divider />
