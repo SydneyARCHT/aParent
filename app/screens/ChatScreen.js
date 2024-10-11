@@ -100,7 +100,7 @@ function ChatScreenContent({ navigation }) {
                   <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 3 }}>
                     {chat.userName}
                   </Text>
-                  <Text style={{ fontSize: 17, fontWeight: '300', color: 'gray' }}>
+                  <Text style={{ fontSize: 17, fontWeight: '300', color: 'gray', marginRight: 85,}}>
                     {chat.recentMessage}
                   </Text>
                 </View>
