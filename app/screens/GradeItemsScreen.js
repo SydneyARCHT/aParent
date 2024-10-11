@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Text, View, StyleSheet, SafeAreaView, ScrollView, ActivityIndicator, Dimensions, Modal } from 'react-native';
-import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore'; // Firestore functions
-import { DataTable } from 'react-native-paper'; // For CSV-style table
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore'; 
+import { DataTable } from 'react-native-paper'; 
 import { database } from '../config/firebaseConfig'; // Firebase config
 
 const screenWidth = Dimensions.get('window').width;
@@ -24,31 +24,47 @@ function GradeItemsScreen({ route }) {
 
   const fetchGrades = async (classId, studentId) => {
     try {
-      // Step 1: Get class_student connections for this class and student
+      // Step 1: Fetch the class-student relationship
       const classStudentQuery = query(
         collection(database, 'class_student'),
         where('class', '==', doc(database, 'classes', classId)),
-        where('student', '==', doc(database, 'students', studentId)) // Fetch grades for the selected student
+        where('student', '==', doc(database, 'students', studentId))
       );
       const classStudentSnapshot = await getDocs(classStudentQuery);
       if (classStudentSnapshot.empty) {
         console.warn("No student found for this class.");
         return;
       }
-
-      // Step 2: Get grades for the selected student and class
+  
+      // Step 2: Fetch assignments for the class
+      const assignments = await getAssignmentsForClass(classId);
+  
+      // Step 3: If no assignments exist, return early with no grades
+      if (assignments.length === 0) {
+        console.log("No assignments found for this class.");
+        setFilteredGradeItems([]); // No grades to display
+        setAssignmentTypes([]); // No assignment types
+        setAverageGrades([]); // No averages
+        setOverallAverage(0); // No overall average
+        setClassName((await getDoc(doc(database, 'classes', classId))).data().className);
+        setLoading(false);
+        return;
+      }
+  
+      // Step 4: Query for grades based on the assignments
       const gradesQuery = query(
         collection(database, 'grades'),
         where('student', '==', doc(database, 'students', studentId)),
-        where('assignment', 'in', await getAssignmentsForClass(classId)) // Get assignments linked to this class
+        where('assignment', 'in', assignments) // Get assignments linked to this class
       );
       const gradesSnapshot = await getDocs(gradesQuery);
+  
       const gradeData = await Promise.all(
         gradesSnapshot.docs.map(async (doc) => {
           const gradeDoc = doc.data();
           const assignmentDoc = await getDoc(gradeDoc.assignment);
           if (!assignmentDoc.exists()) return null;
-
+  
           return {
             id: doc.id,
             ...gradeDoc,
@@ -61,20 +77,20 @@ function GradeItemsScreen({ route }) {
         })
       );
       const validGrades = gradeData.filter(item => item !== null);
-
+  
       // Extract assignment types
       const types = [...new Set(validGrades.map(item => item.assignmentType))];
       setAssignmentTypes(types);
       setFilteredGradeItems(validGrades);
-
+  
       // Calculate average grades for each type
       const averages = calculateAverageGrades(validGrades, types);
       setAverageGrades(averages);
-
+  
       // Calculate overall average
       const overallAvg = calculateOverallAverage(validGrades);
       setOverallAverage(overallAvg);
-
+  
       setClassName((await getDoc(doc(database, 'classes', classId))).data().className);
       setGradeItems(validGrades);
     } catch (error) {
@@ -90,7 +106,7 @@ function GradeItemsScreen({ route }) {
     return assignmentsSnapshot.docs.map(doc => doc.ref);
   };
 
-  // Function to calculate the average grades for each assignment type
+  
   const calculateAverageGrades = (gradeItems, types) => {
     const averages = types.map(type => {
       const itemsOfType = gradeItems.filter(item => item.assignmentType === type);
@@ -103,16 +119,16 @@ function GradeItemsScreen({ route }) {
   // Corrected function to calculate the overall average of all grades
   const calculateOverallAverage = (gradeItems) => {
     const totalGrades = gradeItems.reduce((acc, item) => acc + item.grade, 0);
-    // Assume grades are stored as integers (e.g., 90 for 90%)
+    
     const average = totalGrades / gradeItems.length;
     
-    // If grades are out of 100, you don't need to divide by 100 again
+    
     return gradeItems.length > 0 ? average.toFixed(2) : 0;
   };
 
   const handleTableRowClick = (item) => {
     setSelectedAssignment(item);
-    setModalVisible(true); // Show modal on table row click
+    setModalVisible(true); 
   };
 
   // Color assignment based on index
@@ -126,35 +142,37 @@ function GradeItemsScreen({ route }) {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <Text style={styles.classTitle}>{className}</Text>
-
+  
         {/* Bar Chart for Assignment Types */}
-        <View style={styles.barChartContainer}>
-          {/* Y-Axis for grades */}
-          <View style={styles.yAxis}>
-            {[100, 80, 60, 40, 20, 0].map((label, index) => (
-              <Text key={index} style={styles.yAxisLabel}>{label}</Text>
-            ))}
-          </View>
-
-          {/* Bar chart content */}          
-          <View style={styles.barChartContent}>
-            {assignmentTypes.map((type, index) => (
-              <View key={index} style={styles.barContainer}>
-                <View style={[styles.bar, { height: averageGrades[index] * 2, backgroundColor: barColors[index], width: 60 }]}>
-                  <Text style={styles.barAverage}>{averageGrades[index].toFixed(1)}%</Text>
+        {assignmentTypes.length > 0 ? (
+          <View style={styles.barChartContainer}>
+            {/* Y-Axis for grades */}
+            <View style={styles.yAxis}>
+              {[100, 80, 60, 40, 20, 0].map((label, index) => (
+                <Text key={index} style={styles.yAxisLabel}>{label}</Text>
+              ))}
+            </View>
+  
+            {/* Bar chart content */}          
+            <View style={styles.barChartContent}>
+              {assignmentTypes.map((type, index) => (
+                <View key={index} style={styles.barContainer}>
+                  <View style={[styles.bar, { height: averageGrades[index] * 2, backgroundColor: barColors[index], width: 60 }]}>
+                    <Text style={styles.barAverage}>{averageGrades[index].toFixed(1)}%</Text>
+                  </View>
+                  <Text style={styles.barLabel}>{type}</Text>
                 </View>
-                <Text style={styles.barLabel}>{type}</Text>
-              </View>
-            ))}
+              ))}
+            </View>
           </View>
-        </View>
-
-        {/* Overall average score */}
+        ) : null}
+  
+        {/* Display Overall Average */}
         <Text style={styles.overallAverageTitle}>
           Overall Grade: {overallAverage}%
         </Text>
-
-        {/* Modal for Assignment Details */}
+  
+        {/* Modal for displaying assignment details */}
         <Modal visible={modalVisible} transparent={true} onRequestClose={() => setModalVisible(false)}>
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
@@ -167,24 +185,31 @@ function GradeItemsScreen({ route }) {
             </View>
           </View>
         </Modal>
-
-        {/* CSV Style Graded Assignment Table */}
-        <DataTable style={styles.tableContainer}>
-          <DataTable.Header>
-            <DataTable.Title style={[styles.tableHeader, { flex: 4 }]}>Assignment</DataTable.Title>
-            <DataTable.Title style={[styles.tableHeader, { flex: 1 }]}>Grade</DataTable.Title>
-          </DataTable.Header>
-
-          {filteredGradeItems.map((item) => (
-            <DataTable.Row key={item.id} onPress={() => handleTableRowClick(item)}>
-              <DataTable.Cell style={[styles.tableCell, { flex: 4 }]}>{item.assignmentName}</DataTable.Cell>
-              <DataTable.Cell style={[styles.tableCell, { flex: 1 }]}>{item.grade}</DataTable.Cell>
-            </DataTable.Row>
-          ))}
-        </DataTable>
+  
+        {/* Display Grades Table or "No Grades To Display!" */}
+        {filteredGradeItems.length > 0 ? (
+          <DataTable style={styles.tableContainer}>
+            <DataTable.Header>
+              <DataTable.Title style={[styles.tableHeader, { flex: 4 }]}>Assignment</DataTable.Title>
+              <DataTable.Title style={[styles.tableHeader, { flex: 1 }]}>Grade</DataTable.Title>
+            </DataTable.Header>
+  
+            {filteredGradeItems.map((item) => (
+              <DataTable.Row key={item.id} onPress={() => handleTableRowClick(item)}>
+                <DataTable.Cell style={[styles.tableCell, { flex: 4 }]}>{item.assignmentName}</DataTable.Cell>
+                <DataTable.Cell style={[styles.tableCell, { flex: 1 }]}>{item.grade}</DataTable.Cell>
+              </DataTable.Row>
+            ))}
+          </DataTable>
+        ) : (
+          <View style={styles.noGradesContainer}>
+            <Text style={styles.noGradesText}>No Grades To Display!</Text>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
+  
 }
 
 const styles = StyleSheet.create({
@@ -210,7 +235,7 @@ const styles = StyleSheet.create({
   },
   yAxis: {
     justifyContent: 'space-between',
-    height: 200, // Match height of bars
+    height: 200, 
     marginRight: 10,
     marginBottom: 22,
   },
@@ -271,14 +296,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   tableContainer: {
-    marginTop: 20, // Added margin above the table
+    marginTop: 20, 
   },
   tableHeader: {
-    fontSize: 12, // Slightly smaller text
+    fontSize: 12,
   },
   tableCell: {
-    fontSize: 12, // Slightly smaller text
-    flexWrap: 'wrap', // Allows long text to wrap onto a new line
+    fontSize: 13, 
+    marginTop: 10,
+    flexWrap: 'wrap',
   },
 });
 

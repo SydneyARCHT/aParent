@@ -12,12 +12,13 @@ function ChatScreenContent({ navigation }) {
   const [chats, setChats] = useState([]);
   const user = auth.currentUser;
 
+  const colors = ['#5BFF9F', '#AE5BFF', '#FF6D5B', '#FFC85B', '#5DEFFF', '#AE5BFF', '#AE5BFF']; // Color list
+
   useEffect(() => {
     if (user) {
       fetchChats();
     }
   }, [user]);
-
 
   const fetchChats = async () => {
     try {
@@ -29,7 +30,7 @@ function ChatScreenContent({ navigation }) {
       const snapshot = await getDocs(q);
 
       const chatDataArray = await Promise.all(
-        snapshot.docs.map(async (doc) => {
+        snapshot.docs.map(async (doc, index) => {
           const chatData = doc.data();
           let userName = 'Unknown User';
           let recentMessage = '';
@@ -58,6 +59,7 @@ function ChatScreenContent({ navigation }) {
             id: doc.id,
             userName,
             recentMessage,
+            avatarColor: colors[index % colors.length], // Assign color based on index
             ...chatData,
           };
         })
@@ -79,28 +81,21 @@ function ChatScreenContent({ navigation }) {
               onPress={() => navigation.navigate('ChatDetails', { chatId: chat.id, userName: chat.userName })}
             >
               <View style={{ padding: 15, borderBottomWidth: 1, borderColor: '#ccc', flexDirection: 'row', alignItems: 'center' }}>
-                {chat.teacherAvatar ? (
-                  <Image
-                    source={{ uri: chat.teacherAvatar }}
-                    style={{ width: 40, height: 40, borderRadius: 20, marginRight: 10 }}
-                  />
-                ) : (
-                  <View
-                    style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 20,
-                      backgroundColor: '#ccc',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      marginRight: 10,
-                    }}
-                  >
-                    <Text style={{ color: 'white', fontSize: 18 }}>
-                      {chat.userName ? chat.userName.charAt(0).toUpperCase() : '?'}
-                    </Text>
-                  </View>
-                )}
+                <View
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 20,
+                    backgroundColor: chat.avatarColor, // Use the assigned color
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginRight: 10,
+                  }}
+                >
+                  <Text style={{ color: 'white', fontSize: 18 }}>
+                    {chat.userName ? chat.userName.charAt(0).toUpperCase() : '?'}
+                  </Text>
+                </View>
                 <View>
                   <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 3 }}>
                     {chat.userName}
