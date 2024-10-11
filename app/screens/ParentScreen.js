@@ -568,7 +568,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   neumorphicButton: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#e91e63',
     borderRadius: 10,
     padding: 10,
     shadowColor: '#000',
@@ -577,12 +577,13 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     marginBottom: 20,
     marginLeft: 20,
-    marginTop: 10,
+    marginTop: 15,
     alignSelf: 'flex-start',
+
   },
   buttonText: {
     fontSize: 16,
-    color: '#333',
+    color: 'white',
     fontWeight: 'bold',
   },
   modalContainer: {

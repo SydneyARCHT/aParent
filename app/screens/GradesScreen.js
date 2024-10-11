@@ -1,33 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Text, View, StyleSheet, FlatList, SafeAreaView, ActivityIndicator } from 'react-native';
 import { List, Divider, useTheme } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native'; // Import navigation
+import { useNavigation } from '@react-navigation/native';
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { auth, database } from '../config/firebaseConfig'; // Firebase config
 
-// Function to generate random color for the hat icon
-const getRandomColor = () => {
-  const letters = '0123456789ABCDEF';
-  let color = '#';
-  for (let i = 0; i < 6; i++) {
-    color += letters[Math.floor(Math.random() * 16)];
-  }
-  return color;
-};
-
-// Function to generate a random grade as a placeholder
-const getRandomGrade = () => {
-  return Math.floor(Math.random() * (100 - 70 + 1)) + 70 + '%'; // Random number between 70% and 100%
-};
+// Array of colors based on the provided list
+const iconColors = ['#5BFF9F', '#AE5BFF', '#FF6D5B', '#FFC85B', '#5DEFFF', '#AE5BFF', '#AE5BFF'];
 
 function GradesScreen() {
   const { colors } = useTheme();
   const [loading, setLoading] = useState(true);
   const [classData, setClassData] = useState([]);
   const [studentId, setStudentId] = useState(null);
-  const navigation = useNavigation(); // Use navigation
+  const navigation = useNavigation(); 
 
-  // Fetch parent, student, and class data
+  // Fetch parent, student, class, and grade data
   const fetchClassesAndGrades = async () => {
     try {
       const user = auth.currentUser; // Get the current authenticated user
@@ -56,13 +44,20 @@ function GradesScreen() {
         const classStudentQuery = query(collection(database, 'class_student'), where('student', '==', studentRefs[0]));
         const classStudentSnapshot = await getDocs(classStudentQuery);
 
-        const classRefs = classStudentSnapshot.docs.map(doc => doc.data().class);
-        const classData = await Promise.all(classRefs.map(async classRef => {
+        const classData = await Promise.all(classStudentSnapshot.docs.map(async classDocRef => {
+          const classRef = classDocRef.data().class;
           const classDoc = await getDoc(classRef);
-          return classDoc.exists() ? { id: classDoc.id, ...classDoc.data() } : null;
+
+          if (classDoc.exists()) {
+            // Step 4: Fetch the overall grade for each class
+            const overallGrade = await fetchOverallGradeForClass(classRef, studentId);
+            return { id: classDoc.id, className: classDoc.data().className, overallGrade };
+          }
+
+          return null;
         }));
 
-        setClassData(classData);
+        setClassData(classData.filter(item => item !== null));
       }
     } catch (error) {
       console.error('Error fetching classes and grades: ', error);
@@ -71,16 +66,65 @@ function GradesScreen() {
     }
   };
 
+  // Function to fetch and calculate overall grade for a class
+  const fetchOverallGradeForClass = async (classRef, studentId) => {
+    try {
+      // Get assignments for the class
+      const assignments = await getAssignmentsForClass(classRef.id);
+
+      // If no assignments exist, return 0 as the overall grade
+      if (assignments.length === 0) {
+        return '0';
+      }
+
+      // Query to get all grades for the student in this class
+      const gradesQuery = query(
+        collection(database, 'grades'),
+        where('student', '==', doc(database, 'students', studentId)),
+        where('assignment', 'in', assignments)
+      );
+
+      const gradesSnapshot = await getDocs(gradesQuery);
+
+      // Calculate the overall average
+      const gradeItems = gradesSnapshot.docs.map(doc => doc.data());
+      const totalGrades = gradeItems.reduce((acc, item) => acc + (Number(item.grade) || 0), 0);
+
+      // Return 0 if there are no grades, otherwise calculate the average
+      const overallGrade = gradeItems.length > 0 ? (totalGrades / gradeItems.length).toFixed(2) : '0';
+
+      return overallGrade;
+    } catch (error) {
+      console.error('Error fetching overall grade: ', error);
+      return '0'; // Return 0 in case of any errors
+    }
+  };
+
+  // Function to get assignments for the class
+  const getAssignmentsForClass = async (classId) => {
+    const assignmentsQuery = query(collection(database, 'assignments'), where('class', '==', doc(database, 'classes', classId)));
+    const assignmentsSnapshot = await getDocs(assignmentsQuery);
+    return assignmentsSnapshot.docs.map(doc => doc.ref);
+  };
+
   useEffect(() => {
     fetchClassesAndGrades();
   }, []);
 
-  const renderItem = ({ item }) => (
+  const renderItem = ({ item, index }) => (
     <>
       <List.Item
-        title={item.className} // Display class name
-        right={() => <Text style={styles.grade}>{getRandomGrade()}</Text>} // Placeholder for grade
-        left={() => <List.Icon icon="school" color={getRandomColor()} />} // Random colored hat icon
+        title={item.className} 
+        titleStyle={{ fontSize: 20 }}
+        right={() => <Text style={styles.grade}>{item.overallGrade}%</Text>} // Display the overall grade
+        left={() => (
+          <List.Icon 
+            icon="school" 
+            size={60}
+            color={iconColors[index % iconColors.length]} // Assign color based on index
+            style={styles.icon} // Larger icon style
+          />
+        )} 
         onPress={() => navigation.navigate('GradeItems', { classId: item.id, studentId })} // Navigate to GradeItemsScreen with classId and studentId
         style={styles.listItem}
       />
@@ -109,6 +153,7 @@ function GradesScreen() {
   );
 }
 
+// Styles
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -118,9 +163,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   grade: {
-    fontSize: 16,
+    fontSize: 20, // Increased font size for grade percentage
     alignSelf: 'center',
     paddingRight: 15,
+  },
+  icon: {
+
   },
   listItem: {
     marginLeft: 10,
