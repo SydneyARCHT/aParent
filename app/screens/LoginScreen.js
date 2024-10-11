@@ -62,7 +62,7 @@ export default function RegisterScreen() {
         <View style={{marginTop: 20, flexDirection: 'row', alignItems: 'center', alignSelf: 'center'}}>
           <Text style={{color: 'gray', fontWeight: '600', fontSize: 14}}>Don't have an account? </Text>
           <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-            <Text style={{color: '#e91e63', fontWeight: '600', fontSize: 14}}> Sign Up</Text>
+            <Text style={{color: '#47C97D', fontWeight: '600', fontSize: 14}}> Sign Up</Text>
           </TouchableOpacity>
         </View>
         </SafeAreaView>
@@ -79,7 +79,7 @@ export default function RegisterScreen() {
     title: {
       fontSize: 36,
       fontWeight: 'bold',
-      color: "#e91e63",
+      color: "#47C97D",
       alignSelf: "center",
       paddingBottom: 24,
     },
@@ -112,7 +112,7 @@ export default function RegisterScreen() {
       marginHorizontal: 30,
     },
     button: {
-      backgroundColor: '#e91e63',
+      backgroundColor: '#47C97D',
       height: 58,
       borderRadius: 10,
       justifyContent: 'center',

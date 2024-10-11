@@ -8,22 +8,22 @@ const BehaviorScreen = () => {
         <Text style={styles.title}>Behavior</Text>
 
         <View style={styles.row}>
-          <View style={[styles.quadrant, styles.topLeft]}>
+          <View style={[styles.quadrant, styles.topLeft, { backgroundColor: '#c69af6' }]}>
             <Text style={styles.quadrantTitle}>Positive Mindset</Text>
             <Text style={styles.quadrantSubtitle}>Satisfactory</Text>
           </View>
-          <View style={[styles.quadrant, styles.topRight]}>
+          <View style={[styles.quadrant, styles.topRight, { backgroundColor: '#81e6d9' }]}>
             <Text style={styles.quadrantTitle}>Thinking Skills</Text>
             <Text style={styles.quadrantSubtitle}>Needs Improvement</Text>
           </View>
         </View>
 
         <View style={styles.row}>
-          <View style={[styles.quadrant, styles.bottomLeft]}>
+          <View style={[styles.quadrant, styles.bottomLeft, { backgroundColor: '#c69af6' }]}>
             <Text style={styles.quadrantTitle}>Community Mindset</Text>
             <Text style={styles.quadrantSubtitle}>Good</Text>
           </View>
-          <View style={[styles.quadrant, styles.bottomRight]}>
+          <View style={[styles.quadrant, styles.bottomRight, { backgroundColor: '#f6ad55' }]}>
             <Text style={styles.quadrantTitle}>Interpersonal Skills</Text>
             <Text style={styles.quadrantSubtitle}>Average</Text>
           </View>
@@ -37,7 +37,7 @@ const BehaviorScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#ffffff',
   },
   scrollContainer: {
     alignItems: 'center',
@@ -48,6 +48,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
+    color: '#333',
   },
   row: {
     flexDirection: 'row',
@@ -57,11 +58,11 @@ const styles = StyleSheet.create({
   },
   quadrant: {
     width: '45%', 
-    height: 220,  
+    height: 180,  
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#888',
     borderRadius: 30, 
+    padding: 10,
   },
   topLeft: {
     borderTopLeftRadius: 150, 
@@ -87,12 +88,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
-    color: '#fff',
+    color: '#3d3d3d',
+    marginBottom: 5,
   },
   quadrantSubtitle: {
     fontSize: 14,
     textAlign: 'center',
-    color: '#ddd',
+    color: '#3d3d3d',
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    borderRadius: 8,
   },
 });
 

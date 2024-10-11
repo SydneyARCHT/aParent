@@ -1,18 +1,71 @@
-import React from 'react';
-import { SafeAreaView, View, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { SafeAreaView, View, StyleSheet, TouchableOpacity, Image, Animated, Dimensions } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import DrawerComponent from '../navigation/DrawerComponent';
-import { MaterialIcons } from '@expo/vector-icons';
 
 const Drawer = createDrawerNavigator();
+const bubbleColors = ['#5BFF9F', '#AE5BFF', '#FF6D5B', '#FFC85B', '#5DEFFF'];
+
+// Helper function to generate random bubbles
+const generateRandomBubbles = (count) => {
+  return Array.from({ length: count }).map((_, index) => {
+    return <AnimatedBubble key={index} />;
+  });
+};
+
+const AnimatedBubble = () => {
+  const { width, height } = Dimensions.get('window');
+  const size = Math.random() * 100 + 50; // Random size between 50 and 150
+  const backgroundColor =
+    bubbleColors[Math.floor(Math.random() * bubbleColors.length)] + '50'; // Random color with transparency
+
+  // Generate a random starting position
+  const initialX = Math.random() * width;
+  const initialY = Math.random() * height;
+  const position = useRef(new Animated.ValueXY({ x: initialX, y: initialY })).current;
+
+  useEffect(() => {
+    const moveBubble = () => {
+      Animated.timing(position, {
+        toValue: {
+          x: position.x._value - Math.random() * 100 - 50, // Move leftward
+          y: position.y._value - Math.random() * 100 - 50, // Move upward
+        },
+        duration: Math.random() * 4000 + 3000, // Random duration between 3s and 7s
+        useNativeDriver: false,
+      }).start(() => moveBubble()); // Start again for continuous movement
+    };
+
+    moveBubble();
+  }, [position]);
+
+  return (
+    <Animated.View
+      style={[
+        styles.bubble,
+        {
+          width: size,
+          height: size,
+          backgroundColor,
+          borderRadius: size / 2,
+          transform: position.getTranslateTransform(),
+        },
+      ]}
+    />
+  );
+};
 
 function StudentBoardScreenContent() {
   const navigation = useNavigation();
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Render random colored bubbles as a background */}
+      <View style={StyleSheet.absoluteFillObject}>
+        {generateRandomBubbles(35)}
+      </View>
       <View style={styles.row}>
         <TouchableOpacity
           style={styles.card}
@@ -127,6 +180,9 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
+  },
+  bubble: {
+    position: 'absolute',
   },
 });
 
