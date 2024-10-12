@@ -1,18 +1,43 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, Image, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  SafeAreaView,
+  Image,
+  StyleSheet,
+  ActivityIndicator,
+} from 'react-native';
 import { auth, database } from '../config/firebaseConfig';
-import { collection, query, where, getDocs, doc, getDoc, orderBy, limit } from 'firebase/firestore';
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  getDoc,
+  orderBy,
+  limit,
+} from 'firebase/firestore';
 import DrawerComponent from '../navigation/DrawerComponent';
 import { createDrawerNavigator } from '@react-navigation/drawer';
-
 
 const Drawer = createDrawerNavigator();
 
 function ChatScreenContent({ navigation }) {
   const [chats, setChats] = useState([]);
+  const [loading, setLoading] = useState(true); // Loading state to control ActivityIndicator
   const user = auth.currentUser;
 
-  const colors = ['#5BFF9F', '#AE5BFF', '#FF6D5B', '#FFC85B', '#5DEFFF', '#AE5BFF', '#AE5BFF']; // Color list
+  const colors = [
+    '#5BFF9F',
+    '#AE5BFF',
+    '#FF6D5B',
+    '#FFC85B',
+    '#5DEFFF',
+    '#AE5BFF',
+    '#AE5BFF',
+  ]; // Color list
 
   useEffect(() => {
     if (user) {
@@ -21,8 +46,8 @@ function ChatScreenContent({ navigation }) {
   }, [user]);
 
   const fetchChats = async () => {
+    setLoading(true); // Set loading to true when starting to fetch data
     try {
-
       const parentRef = doc(database, 'parents', user.uid);
       const chatsRef = collection(database, 'chats');
 
@@ -44,11 +69,21 @@ function ChatScreenContent({ navigation }) {
               }
 
               // Fetch the most recent message from the messages subcollection
-              const messagesRef = collection(database, 'chats', doc.id, 'messages');
-              const messagesQuery = query(messagesRef, orderBy('timestamp', 'desc'), limit(1));
+              const messagesRef = collection(
+                database,
+                'chats',
+                doc.id,
+                'messages'
+              );
+              const messagesQuery = query(
+                messagesRef,
+                orderBy('timestamp', 'desc'),
+                limit(1)
+              );
               const messagesSnapshot = await getDocs(messagesQuery);
               if (!messagesSnapshot.empty) {
-                recentMessage = messagesSnapshot.docs[0].data().content || '';
+                recentMessage =
+                  messagesSnapshot.docs[0].data().content || '';
               }
             } catch (error) {
               console.error('Error fetching user or message data:', error);
@@ -68,55 +103,91 @@ function ChatScreenContent({ navigation }) {
       setChats(chatDataArray);
     } catch (error) {
       console.error('Error fetching chats:', error);
+    } finally {
+      setLoading(false); // Set loading to false after data is fetched
     }
   };
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <View>
-        {chats.length > 0 ? (
-          chats.map((chat, index) => (
-            <TouchableOpacity
-              key={index}
-              onPress={() => navigation.navigate('ChatDetails', { chatId: chat.id, userName: chat.userName })}
-            >
-              <View style={{ padding: 15, borderBottomWidth: 1, borderColor: '#ccc', flexDirection: 'row', alignItems: 'center' }}>
+      {loading ? (
+        // Display loading indicator when fetching data
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#e91e63" />
+        </View>
+      ) : (
+        <View>
+          {chats.length > 0 ? (
+            chats.map((chat, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() =>
+                  navigation.navigate('ChatDetails', {
+                    chatId: chat.id,
+                    userName: chat.userName,
+                  })
+                }
+              >
                 <View
                   style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 20,
-                    backgroundColor: chat.avatarColor, // Use the assigned color
-                    justifyContent: 'center',
+                    padding: 15,
+                    borderBottomWidth: 1,
+                    borderColor: '#ccc',
+                    flexDirection: 'row',
                     alignItems: 'center',
-                    marginRight: 10,
                   }}
                 >
-                  <Text style={{ color: 'white', fontSize: 18 }}>
-                    {chat.userName ? chat.userName.charAt(0).toUpperCase() : '?'}
-                  </Text>
+                  <View
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                      backgroundColor: chat.avatarColor, // Use the assigned color
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      marginRight: 10,
+                    }}
+                  >
+                    <Text style={{ color: 'white', fontSize: 18 }}>
+                      {chat.userName
+                        ? chat.userName.charAt(0).toUpperCase()
+                        : '?'}
+                    </Text>
+                  </View>
+                  <View>
+                    <Text
+                      style={{
+                        fontSize: 20,
+                        fontWeight: 'bold',
+                        marginBottom: 3,
+                      }}
+                    >
+                      {chat.userName}
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 17,
+                        fontWeight: '300',
+                        color: 'gray',
+                        marginRight: 85,
+                      }}
+                    >
+                      {chat.recentMessage}
+                    </Text>
+                  </View>
                 </View>
-                <View>
-                  <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 3 }}>
-                    {chat.userName}
-                  </Text>
-                  <Text style={{ fontSize: 17, fontWeight: '300', color: 'gray', marginRight: 85,}}>
-                    {chat.recentMessage}
-                  </Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))
-        ) : (
-          <View>
-            <Text>No chats available</Text>
-          </View>
-        )}
-      </View>
+              </TouchableOpacity>
+            ))
+          ) : (
+            <View style={styles.noChatsContainer}>
+              <Text style={styles.noChatsText}>No chats available</Text>
+            </View>
+          )}
+        </View>
+      )}
     </SafeAreaView>
   );
 }
-
 
 const CustomHeaderTitle = () => {
   return (
@@ -146,7 +217,10 @@ const ChatScreen = () => {
           },
           headerTitle: () => <CustomHeaderTitle />,
           headerRight: () => (
-            <TouchableOpacity style={styles.avatarContainer} onPress={() => console.log('Avatar clicked')}>
+            <TouchableOpacity
+              style={styles.avatarContainer}
+              onPress={() => console.log('Avatar clicked')}
+            >
               <Image source={{ uri: parentAvatar }} style={styles.avatar} />
             </TouchableOpacity>
           ),
@@ -173,6 +247,21 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noChatsContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  noChatsText: {
+    fontSize: 18,
+    color: 'gray',
   },
 });
 

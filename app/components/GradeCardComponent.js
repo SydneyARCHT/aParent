@@ -96,7 +96,8 @@ const GradeCardComponent = ({ data, onSeenUpdate }) => {
 
             {/* Button */}
             <View style={styles.actions}>
-              <TouchableOpacity onPress={handleViewMore} style={[styles.viewMoreButton, { backgroundColor: '#AE5BFF', borderColor: primaryColor}]}>
+              <Text style={styles.dateText}>{timestamp}</Text>
+              <TouchableOpacity onPress={handleViewMore} style={[styles.viewMoreButton, { backgroundColor: '#AE5BFF', borderColor: primaryColor }]}>
                 <Text style={styles.viewMoreButtonText}>View More</Text>
               </TouchableOpacity>
             </View>
@@ -218,6 +219,20 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
 
   },
+  classNameText: {
+    fontSize: 14,
+    color: '#141212',
+    marginRight: 10, // Adds space between the class name and the date
+    alignSelf: 'center', // Aligns the text vertically with the button
+    fontWeight: '600',
+  },
+  dateText: {
+    fontSize: 14,
+    color: '#888888',
+    marginRight: 10, // Adds space between the date and the button
+    alignSelf: 'center', // Aligns the text vertically with the button
+  },
+  
   modalContent: {
     width: width * 0.8,
     backgroundColor: 'white',

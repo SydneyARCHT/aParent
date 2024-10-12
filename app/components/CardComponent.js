@@ -125,6 +125,10 @@ const CardComponent = ({ data, onClose, onView }) => {
 
             {/* Button */}
             <View style={styles.actions}>
+              <View style={styles.infoContainer}>
+                <Text style={styles.classNameText}>{className}</Text>
+                <Text style={styles.dateText}>{`Assigned on: ${dateAssigned}`}</Text>
+              </View>
               <TouchableOpacity onPress={handleViewMore} style={styles.viewMoreButton}>
                 <Text style={styles.viewMoreButtonText}>View More</Text>
               </TouchableOpacity>
@@ -185,6 +189,23 @@ const styles = StyleSheet.create({
     borderColor: "#F3B289",
     
   },
+  infoContainer: {
+    flexDirection: 'column',
+    justifyContent: 'center',
+    marginRight: 16, // Space between the info and the button
+  },
+  classNameText: {
+    marginTop: 10,
+    fontSize: 14,
+    color: '#141212',
+    marginBottom: 4, // Space between the class name and date
+    fontWeight: '400',
+  },
+  dateText: {
+    fontSize: 15,
+    color: '#888888',
+  },
+  
   tagContainer: {
     marginLeft: 10,
     backgroundColor: '#FF6D5B',

@@ -1,6 +1,30 @@
+// ParentScreen.js
+
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, ScrollView, SafeAreaView, RefreshControl, ActivityIndicator, TouchableOpacity, Text, Modal, Image, Animated, Dimensions } from 'react-native';
-import { collection, getDocs, query, where, orderBy, doc, getDoc } from 'firebase/firestore';
+import {
+  StyleSheet,
+  View,
+  ScrollView,
+  SafeAreaView,
+  RefreshControl,
+  ActivityIndicator,
+  TouchableOpacity,
+  Text,
+  Modal,
+  Image,
+  Animated,
+  Dimensions,
+  Alert,
+} from 'react-native';
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+  orderBy,
+  doc,
+  getDoc,
+} from 'firebase/firestore';
 import { auth, database } from '../config/firebaseConfig';
 import CardComponent from '../components/CardComponent';
 import MessageCardComponent from '../components/MessageCardComponent';
@@ -9,12 +33,29 @@ import AttendanceCardComponent from '../components/AttendanceCardComponent';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import DrawerComponent from '../navigation/DrawerComponent';
 import { CalendarList } from 'react-native-calendars';
-import { MaterialIcons, FontAwesome, FontAwesome5, Feather } from '@expo/vector-icons';
+import {
+  MaterialIcons,
+  FontAwesome,
+  FontAwesome5,
+  Feather,
+} from '@expo/vector-icons';
 
 const Drawer = createDrawerNavigator();
-const bubbleColors = ['#5BFF9F', '#AE5BFF', '#FF6D5B', '#FFC85B', '#5DEFFF'];
+const bubbleColors = [
+  '#5BFF9F',
+  '#AE5BFF',
+  '#FF6D5B',
+  '#FFC85B',
+  '#5DEFFF',
+];
+
+const handleLayout = () => {
+  setCalendarVisible(true); // Force rendering after layout is triggered
+};
 
 // Helper function to generate random bubbles
+
+
 const generateRandomBubbles = (count) => {
   return Array.from({ length: count }).map((_, index) => {
     return <AnimatedBubble key={index} />;
@@ -22,10 +63,10 @@ const generateRandomBubbles = (count) => {
 };
 
 const AnimatedBubble = () => {
-  const { width, height } = Dimensions.get('window');
+  const { width, height } = Dimensions.get("window");
   const size = Math.random() * 100 + 50; // Random size between 50 and 150
   const backgroundColor =
-    bubbleColors[Math.floor(Math.random() * bubbleColors.length)] + '50'; // Random color with transparency
+    bubbleColors[Math.floor(Math.random() * bubbleColors.length)] + "50"; // Random color with transparency
 
   // Generate a random starting position
   const initialX = Math.random() * width;
@@ -34,14 +75,23 @@ const AnimatedBubble = () => {
 
   useEffect(() => {
     const moveBubble = () => {
-      Animated.timing(position, {
-        toValue: {
-          x: position.x._value - Math.random() * 100 - 50, // Move leftward
-          y: position.y._value - Math.random() * 100 - 50, // Move upward
-        },
-        duration: Math.random() * 4000 + 3000, // Random duration between 3s and 7s
-        useNativeDriver: false,
-      }).start(() => moveBubble()); // Start again for continuous movement
+      // Generate a random destination for each bubble movement
+      const destinationX = Math.random() * width;
+      const destinationY = Math.random() * height;
+
+      Animated.loop(
+        Animated.timing(position, {
+          toValue: {
+            x: destinationX,
+            y: destinationY,
+          },
+          duration: Math.random() * 15000 + 5000, // Random duration between 3s and 7s
+          useNativeDriver: false,
+        }),
+        {
+          iterations: -1, // Infinite loop
+        }
+      ).start();
     };
 
     moveBubble();
@@ -68,13 +118,13 @@ function ParentScreenContent() {
   const [combinedData, setCombinedData] = useState([]);
   const [parentId, setParentId] = useState(null);
   const [loading, setLoading] = useState(true);
-  
+
   // Calendar modal and filter states
-  const [calendarVisible, setCalendarVisible] = useState(false); 
+  const [calendarVisible, setCalendarVisible] = useState(false);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [filteredData, setFilteredData] = useState([]);
-  
+
   // Filter menu state
   const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
 
@@ -85,6 +135,19 @@ function ParentScreenContent() {
     messages: true,
     attendance: true,
   });
+
+
+
+  // Callback to handle seen updates from MessageCardComponent
+  const handleSeenUpdate = (messageId) => {
+    setCombinedData((prevData) =>
+      prevData.map((item) =>
+        item.id === messageId ? { ...item, seen: true } : item
+      )
+    );
+  };
+
+
 
   const fetchData = async () => {
     if (!parentId) return;
@@ -121,6 +184,7 @@ function ParentScreenContent() {
         return;
       }
 
+      // Fetch Assignments
       const assignmentsQuery = query(
         collection(database, 'assignments'),
         where('class', 'in', classRefs),
@@ -131,12 +195,17 @@ function ParentScreenContent() {
         assignmentsSnapshot.docs.map(async (doc) => {
           const assignmentData = doc.data();
           const classDoc = await getDoc(assignmentData.class);
-          const className = classDoc.exists() ? classDoc.data().className : 'Unknown Class';
+          const className = classDoc.exists()
+            ? classDoc.data().className
+            : 'Unknown Class';
 
           const assignmentType = assignmentData.type || 'Assignment';
 
+          // Assuming each assignment is linked to a student, adjust if necessary
           const studentDoc = await getDoc(studentRefs[0]);
-          const studentName = studentDoc.exists() ? studentDoc.data().name : 'Your child';
+          const studentName = studentDoc.exists()
+            ? studentDoc.data().name
+            : 'Your child';
 
           return {
             ...assignmentData,
@@ -149,11 +218,15 @@ function ParentScreenContent() {
             description: assignmentData.description || '',
             date_assigned: assignmentData.date_assigned,
             due_date: assignmentData.due_date,
-            timestamp: assignmentData.date_created || { seconds: 0, nanoseconds: 0 },
+            timestamp: assignmentData.date_created || {
+              seconds: 0,
+              nanoseconds: 0,
+            },
           };
         })
       );
 
+      // Fetch Messages
       const chatsQuery = query(
         collection(database, 'chats'),
         where('parent_id', '==', parentDocRef)
@@ -178,13 +251,19 @@ function ParentScreenContent() {
               id: doc.id,
               chatId: chatId,
               type: 'message',
-              title: `New message from - ${messageData.sender_type === 'teacher' ? 'Teacher' : 'Parent'}`,
-              timestamp: messageData.timestamp || { seconds: 0, nanoseconds: 0 },
+              title: `New message from ${
+                messageData.sender_type === 'teacher' ? 'Teacher' : 'Parent'
+              }`,
+              timestamp: messageData.timestamp || {
+                seconds: 0,
+                nanoseconds: 0,
+              },
             };
           })
         );
       }
 
+      // Fetch Grades
       const gradesQuery = query(
         collection(database, 'grades'),
         where('student', 'in', studentRefs)
@@ -200,15 +279,23 @@ function ParentScreenContent() {
             ...gradeData,
             id: doc.id,
             type: 'grade',
-            studentName: studentDoc.exists() ? studentDoc.data().name : 'Unknown Student',
-            assignmentName: assignmentDoc.exists() ? assignmentDoc.data().name : 'Unknown Assignment',
+            studentName: studentDoc.exists()
+              ? studentDoc.data().name
+              : 'Unknown Student',
+            assignmentName: assignmentDoc.exists()
+              ? assignmentDoc.data().name
+              : 'Unknown Assignment',
             grade: gradeData.grade,
             feedback: gradeData.feedback,
-            timestamp: gradeData.timestamp || { seconds: 0, nanoseconds: 0 },
+            timestamp: gradeData.timestamp || {
+              seconds: 0,
+              nanoseconds: 0,
+            },
           };
         })
       );
 
+      // Fetch Attendance
       const attendanceQuery = query(
         collection(database, 'attendance'),
         where('student', 'in', studentRefs)
@@ -233,10 +320,17 @@ function ParentScreenContent() {
             ...attendanceData,
             id: doc.id,
             type: 'attendance',
-            studentName: studentDoc.exists() ? studentDoc.data().name : 'Unknown Student',
-            className: classDoc.exists() ? classDoc.data().className : 'Unknown Class',
+            studentName: studentDoc.exists()
+              ? studentDoc.data().name
+              : 'Unknown Student',
+            className: classDoc.exists()
+              ? classDoc.data().className
+              : 'Unknown Class',
             status: status,
-            timestamp: attendanceData.timestamp || { seconds: 0, nanoseconds: 0 },
+            timestamp: attendanceData.timestamp || {
+              seconds: 0,
+              nanoseconds: 0,
+            },
             seen: attendanceData.seen || false,
           };
         })
@@ -248,8 +342,14 @@ function ParentScreenContent() {
         ...newGrades,
         ...newAttendance,
       ].sort((a, b) => {
-        const aTimestamp = a.timestamp && a.timestamp.seconds ? a.timestamp.seconds * 1000 : 0;
-        const bTimestamp = b.timestamp && b.timestamp.seconds ? b.timestamp.seconds * 1000 : 0;
+        const aTimestamp =
+          a.timestamp && a.timestamp.seconds
+            ? a.timestamp.seconds * 1000
+            : 0;
+        const bTimestamp =
+          b.timestamp && b.timestamp.seconds
+            ? b.timestamp.seconds * 1000
+            : 0;
         return bTimestamp - aTimestamp;
       });
 
@@ -257,6 +357,7 @@ function ParentScreenContent() {
       setFilteredData(allData); // Apply filter logic after fetching the data
     } catch (error) {
       console.error('Error fetching data: ', error);
+      Alert.alert('Error', 'There was an error fetching your data.');
     } finally {
       setLoading(false);
     }
@@ -266,7 +367,10 @@ function ParentScreenContent() {
     const fetchParentId = async () => {
       const user = auth.currentUser;
       if (user) {
-        const userQuery = query(collection(database, 'users'), where('email', '==', user.email));
+        const userQuery = query(
+          collection(database, 'users'),
+          where('email', '==', user.email)
+        );
         const userSnapshot = await getDocs(userQuery);
         if (!userSnapshot.empty) {
           const userDoc = userSnapshot.docs[0];
@@ -300,11 +404,12 @@ function ParentScreenContent() {
       });
     }
 
-    // Apply type filtering
+    // Apply 'Not Seen' filtering
     if (selectedFilters.notSeen) {
       filtered = filtered.filter((item) => !item.seen);
     }
 
+    // Apply type filtering
     const typesToShow = [];
     if (selectedFilters.assignments) typesToShow.push('assignment');
     if (selectedFilters.grades) typesToShow.push('grade');
@@ -330,8 +435,12 @@ function ParentScreenContent() {
   const handleDayPress = (day) => {
     if (!startDate) {
       setStartDate(day.dateString);
-    } else {
+    } else if (!endDate) {
       setEndDate(day.dateString);
+    } else {
+      // Reset dates if both are already selected
+      setStartDate(day.dateString);
+      setEndDate(null);
     }
   };
 
@@ -350,17 +459,30 @@ function ParentScreenContent() {
   };
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#e91e63" style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }} />;
+    return (
+      <ActivityIndicator
+        size="large"
+        color="#e91e63"
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      />
+    );
   }
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
-        {generateRandomBubbles(35)} 
+        {generateRandomBubbles(15)}
       </View>
 
       {/* Filter Icon */}
-      <TouchableOpacity style={styles.filterIcon} onPress={() => setFilterDropdownVisible(!filterDropdownVisible)}>
+      <TouchableOpacity
+        style={styles.filterIcon}
+        onPress={() => setFilterDropdownVisible(!filterDropdownVisible)}
+      >
         <MaterialIcons name="filter-list" size={40} color="#e91e63" />
       </TouchableOpacity>
 
@@ -371,50 +493,85 @@ function ParentScreenContent() {
             <FontAwesome5 name="eye" size={16} color="green" />
             <Text style={styles.filterText}>Not Seen</Text>
             <TouchableOpacity onPress={() => onFilterChange('notSeen')}>
-              <FontAwesome name={selectedFilters.notSeen ? 'check-square' : 'square-o'} size={20} color="black" />
+              <FontAwesome
+                name={selectedFilters.notSeen ? 'check-square' : 'square-o'}
+                size={20}
+                color="black"
+              />
             </TouchableOpacity>
           </View>
           <View style={styles.filterItem}>
             <FontAwesome5 name="book" size={16} color="#FF6D5B" />
             <Text style={styles.filterText}>Assignments</Text>
             <TouchableOpacity onPress={() => onFilterChange('assignments')}>
-              <FontAwesome name={selectedFilters.assignments ? 'check-square' : 'square-o'} size={20} color="black" />
+              <FontAwesome
+                name={selectedFilters.assignments ? 'check-square' : 'square-o'}
+                size={20}
+                color="black"
+              />
             </TouchableOpacity>
           </View>
           <View style={styles.filterItem}>
             <FontAwesome5 name="file-alt" size={16} color="#AE5BFF" />
             <Text style={styles.filterText}>Grades</Text>
             <TouchableOpacity onPress={() => onFilterChange('grades')}>
-              <FontAwesome name={selectedFilters.grades ? 'check-square' : 'square-o'} size={20} color="black" />
+              <FontAwesome
+                name={selectedFilters.grades ? 'check-square' : 'square-o'}
+                size={20}
+                color="black"
+              />
             </TouchableOpacity>
           </View>
           <View style={styles.filterItem}>
-            <FontAwesome5 name="comments" size={16} color='#5DEFFF' />
+            <FontAwesome5 name="comments" size={16} color="#5DEFFF" />
             <Text style={styles.filterText}>Messages</Text>
             <TouchableOpacity onPress={() => onFilterChange('messages')}>
-              <FontAwesome name={selectedFilters.messages ? 'check-square' : 'square-o'} size={20} color="black" />
+              <FontAwesome
+                name={selectedFilters.messages ? 'check-square' : 'square-o'}
+                size={20}
+                color="black"
+              />
             </TouchableOpacity>
           </View>
           <View style={styles.filterItem}>
             <Feather name="check-circle" size={16} color="#5BFF9F" />
             <Text style={styles.filterText}>Attendance</Text>
             <TouchableOpacity onPress={() => onFilterChange('attendance')}>
-              <FontAwesome name={selectedFilters.attendance ? 'check-square' : 'square-o'} size={20} color="black" />
+              <FontAwesome
+                name={
+                  selectedFilters.attendance ? 'check-square' : 'square-o'
+                }
+                size={20}
+                color="black"
+              />
             </TouchableOpacity>
           </View>
         </View>
       )}
 
       {/* Date Range Button */}
-      <TouchableOpacity style={styles.neumorphicButton} onPress={() => setCalendarVisible(true)}>
+      <TouchableOpacity
+        style={styles.neumorphicButton}
+        onPress={() => setCalendarVisible(true)}
+      >
         <Text style={styles.buttonText}>Select Date Range</Text>
       </TouchableOpacity>
 
       {/* Calendar Modal */}
-      <Modal visible={calendarVisible} animationType="slide" transparent={true} onRequestClose={() => setCalendarVisible(false)}>
+      <Modal
+        visible={calendarVisible}
+        animationType="slide"
+        transparent={true}
+        
+        onRequestClose={() => setCalendarVisible(false)}
+        onLayout={handleLayout}
+      >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <TouchableOpacity onPress={() => setCalendarVisible(false)} style={styles.closeButton}>
+            <TouchableOpacity
+              onPress={() => setCalendarVisible(false)}
+              style={styles.closeButton}
+            >
               <Text style={styles.closeButtonText}>X</Text>
             </TouchableOpacity>
             <Text style={styles.modalTitle}>Select A Date Range</Text>
@@ -423,7 +580,7 @@ function ParentScreenContent() {
                 horizontal={true}
                 pagingEnabled={true}
                 calendarWidth={313.5}
-                calendarHeight={200}  
+                calendarHeight={200}
                 minDate={'2024-08-01'}
                 maxDate={'2025-05-31'}
                 pastScrollRange={2}
@@ -431,26 +588,51 @@ function ParentScreenContent() {
                 showScrollIndicator={true}
                 onDayPress={handleDayPress}
                 markedDates={{
-                  ...(startDate && { [startDate]: { selected: true, startingDay: true, color: 'green' } }),
-                  ...(endDate && { [endDate]: { selected: true, endingDay: true, color: 'red' } }),
+                  ...(startDate && {
+                    [startDate]: {
+                      selected: true,
+                      startingDay: true,
+                      color: 'green',
+                    },
+                  }),
+                  ...(endDate && {
+                    [endDate]: {
+                      selected: true,
+                      endingDay: true,
+                      color: 'red',
+                    },
+                  }),
                 }}
                 style={styles.calendarStyle}
               />
               <View style={styles.datePickerContainer}>
                 <View style={styles.dateTextContainer}>
                   <Text style={styles.dateLabel}>Start Date:</Text>
-                  <Text style={styles.dateValue}>{startDate || "Not Selected"}</Text>
+                  <Text style={styles.dateValue}>
+                    {startDate || 'Not Selected'}
+                  </Text>
                 </View>
                 <View style={styles.dateTextContainer}>
                   <Text style={styles.dateLabel}>End Date:</Text>
-                  <Text style={styles.dateValue}>{endDate || "Not Selected"}</Text>
+                  <Text style={styles.dateValue}>
+                    {endDate || 'Not Selected'}
+                  </Text>
                 </View>
               </View>
               <View style={styles.buttonContainer}>
-                <TouchableOpacity style={styles.clearButton} onPress={() => { setStartDate(null); setEndDate(null); }}>
+                <TouchableOpacity
+                  style={styles.clearButton}
+                  onPress={() => {
+                    setStartDate(null);
+                    setEndDate(null);
+                  }}
+                >
                   <Text style={styles.clearButtonText}>Clear Filter</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.applyButton} onPress={applyFilter}>
+                <TouchableOpacity
+                  style={styles.applyButton}
+                  onPress={applyFilter}
+                >
                   <Text style={styles.applyButtonText}>Apply Filter</Text>
                 </TouchableOpacity>
               </View>
@@ -463,19 +645,27 @@ function ParentScreenContent() {
       <ScrollView
         contentContainerStyle={styles.scrollViewContainer}
         refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={['#e91e63']} />
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            colors={['#e91e63']}
+          />
         }
       >
         <View style={styles.container}>
           {filteredData.map((item, index) =>
             item.type === 'assignment' ? (
-              <CardComponent key={index} data={item} />
+              <CardComponent key={item.id} data={item} />
             ) : item.type === 'message' ? (
-              <MessageCardComponent key={index} data={item} />
+              <MessageCardComponent
+                key={item.id}
+                data={item}
+                onSeenUpdate={handleSeenUpdate}
+              />
             ) : item.type === 'grade' ? (
-              <GradeCardComponent key={index} data={item} />
+              <GradeCardComponent key={item.id} data={item} />
             ) : item.type === 'attendance' ? (
-              <AttendanceCardComponent key={index} data={item} />
+              <AttendanceCardComponent key={item.id} data={item} />
             ) : null
           )}
         </View>
@@ -512,7 +702,10 @@ const ParentScreen = () => {
           },
           headerTitle: () => <CustomHeaderTitle />,
           headerRight: () => (
-            <TouchableOpacity style={styles.avatarContainer} onPress={() => console.log('Avatar clicked')}>
+            <TouchableOpacity
+              style={styles.avatarContainer}
+              onPress={() => console.log('Avatar clicked')}
+            >
               <Image source={{ uri: parentAvatar }} style={styles.avatar} />
             </TouchableOpacity>
           ),
@@ -525,7 +718,7 @@ const ParentScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "transparent",
+    backgroundColor: 'transparent',
   },
   scrollViewContainer: {
     padding: 16,
@@ -544,7 +737,7 @@ const styles = StyleSheet.create({
     top: 60,
     right: 20,
     backgroundColor: '#fff',
-    borderColor: "black",
+    borderColor: 'black',
     borderWidth: 1,
     padding: 10,
     width: 180,
@@ -579,7 +772,6 @@ const styles = StyleSheet.create({
     marginLeft: 20,
     marginTop: 15,
     alignSelf: 'flex-start',
-
   },
   buttonText: {
     fontSize: 16,
@@ -597,7 +789,8 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 10,
     width: '90%',
-    maxHeight: '90%',
+    minHeight: '70%',
+    maxHeight: '100%',
     alignItems: 'center',
     justifyContent: 'flex-start',
   },
@@ -626,7 +819,7 @@ const styles = StyleSheet.create({
     marginBottom: 110,
   },
   calendarStyle: {
-    marginBottom: 0,
+    marginBottom: 10,
   },
   datePickerContainer: {
     flexDirection: 'row',

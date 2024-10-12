@@ -13,8 +13,11 @@ import RegisterScreen from './app/screens/RegisterScreen';
 import MyTabs from './app/navigation/BottomNavBar'; 
 import TeacherTabs from './app/TeacherSection/TeacherNavigation/TeacherTabs';
 import { useFonts, BalsamiqSans_400Regular, BalsamiqSans_700Bold } from '@expo-google-fonts/balsamiq-sans';
-
+import { LogBox } from 'react-native';
 // Create a stack navigator
+
+LogBox.ignoreAllLogs(true);
+
 const Stack = createStackNavigator();
 
 // Create a context to handle authenticated user state

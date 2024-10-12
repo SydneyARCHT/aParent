@@ -126,6 +126,7 @@ const MessageCardComponent = ({ data, onClose, onSeenUpdate }) => {
             <Text style={styles.title}>{`New Message from ${senderName}`}</Text>
 
             <View style={styles.actions}>
+              <Text style={styles.timestampText}>{timestamp}</Text>
               <TouchableOpacity onPress={handleViewMore} style={styles.viewMoreButton}>
                 <Text style={styles.viewMoreButtonText}>View More</Text>
               </TouchableOpacity>
@@ -149,11 +150,16 @@ const MessageCardComponent = ({ data, onClose, onSeenUpdate }) => {
               style={[styles.icon, { backgroundColor: '#5DEFFF', marginBottom: 20 }]}
             />
             <View style={styles.messageContainer}>
-              <Avatar.Image
-                size={60}
-                source={{ uri: avatarUri }}
-                style={styles.avatar}
-              />
+              <View style={styles.avatar}>
+                <Avatar.Text
+                  size={40}
+                  borderWidth={1}
+                  borderColor={'black'}
+                  label={senderName.charAt(0).toUpperCase()}
+                  style={styles.avatar}
+                />
+              </View>
+
               <View style={styles.textBubble}>
                 <Text style={styles.messageText}>{content}</Text>
               </View>
@@ -186,6 +192,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderWidth: 4,
     borderColor: '#A7F5FE',
+  },
+  avatar: {
+    borderWidth: 2,
+    borderColor:'black',
   },
   tagContainer: {
     marginLeft: 10,
@@ -307,6 +317,12 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 16,
+  },
+  timestampText: {
+    fontSize: 14,
+    color: '#888888',
+    marginRight: 12, // Add some space between the timestamp and the button
+    alignSelf: 'center', // Aligns the text vertically with the button
   },
 });
 

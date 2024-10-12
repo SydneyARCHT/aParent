@@ -94,10 +94,12 @@ const AttendanceCardComponent = ({ data, onSeenUpdate }) => {
 
             {/* Button */}
             <View style={styles.actions}>
+              <Text style={styles.classNameText}>Class: {className}</Text>
               <TouchableOpacity onPress={handleViewMore} style={[styles.viewMoreButton, { backgroundColor: '#5BFF9F', borderColor: '#A7FFCC' }]}>
                 <Text style={styles.viewMoreButtonText}>View More</Text>
               </TouchableOpacity>
             </View>
+
           </View>
         </TouchableOpacity>
       </Animated.View>
@@ -257,6 +259,13 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 16,
+  },
+  classNameText: {
+    fontSize: 14,
+    color: '#141212',
+    marginRight: 40, // Adds spacing between the class name and the button
+    alignSelf: 'center', // Aligns the text vertically with the button
+    fontWeight: '400',
   },
 });
 
