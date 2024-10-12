@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, SafeAreaView, ScrollView, Dimensions, Text } from 'react-native';
+import { StyleSheet, View, SafeAreaView, ScrollView, Dimensions, Text, Animated } from 'react-native';
 import { ContributionGraph, PieChart } from 'react-native-chart-kit';
-import { collection, getDocs, query, where, doc } from 'firebase/firestore';
+import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 import { auth, database } from '../config/firebaseConfig';
 import moment from 'moment';
 
@@ -20,11 +20,38 @@ const chartConfig = {
 
 function AttendanceScreen() {
   const [parentId, setParentId] = useState(null);
+  const [studentName, setStudentName] = useState('Your child');
   const [attendanceData, setAttendanceData] = useState([]);
   const [attendanceSummary, setAttendanceSummary] = useState({
     onTime: 0,
     late: 0,
     absent: 0,
+    onTimePercentage: 0,
+    latePercentage: 0,
+    absentPercentage: 0,
+  });
+  const [backgroundAnim] = useState(new Animated.Value(0));
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(backgroundAnim, {
+          toValue: 1,
+          duration: 3000,
+          useNativeDriver: false,
+        }),
+        Animated.timing(backgroundAnim, {
+          toValue: 0,
+          duration: 3000,
+          useNativeDriver: false,
+        }),
+      ])
+    ).start();
+  }, [backgroundAnim]);
+
+  const animatedBackgroundColor = backgroundAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['#F3E5F5', '#E8F5E9'],
   });
 
   useEffect(() => {
@@ -60,6 +87,13 @@ function AttendanceScreen() {
           console.log('No students found for this parent.');
           setAttendanceData([]);
           return;
+        }
+
+        // Get the student's name
+        const studentDocRef = studentRefs[0];
+        const studentSnap = await getDoc(studentDocRef);
+        if (studentSnap.exists()) {
+          setStudentName(studentSnap.data().name);
         }
 
         const attendanceQuery = query(collection(database, 'attendance'), where('student', 'in', studentRefs));
@@ -125,71 +159,75 @@ function AttendanceScreen() {
   }, [parentId]);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.scrollViewContainer}>
-        <View style={styles.container}>
-          <ContributionGraph
-            values={attendanceData}
-            endDate={moment().endOf('month').toDate()}
-            numDays={105}
-            width={screenWidth}
-            height={220}
-            chartConfig={chartConfig}
-            accessor="count"
-          />
-          <View style={styles.summaryContainer}>
-            <Text style={styles.summaryHeader}>Attendance Summary</Text>
-            <View style={styles.card}>
-              <Text style={styles.summaryText}>
-                The student was on time to class {attendanceSummary.onTime} times in the last 3 months ({attendanceSummary.onTimePercentage}% of the time).
-              </Text>
-              <Text style={styles.summaryText}>
-                They were late {attendanceSummary.late} times ({attendanceSummary.latePercentage}% of the time).
-              </Text>
-              <Text style={styles.summaryText}>
-                They were absent {attendanceSummary.absent} times ({attendanceSummary.absentPercentage}% of the time).
-              </Text>
+    <Animated.View style={[styles.animatedBackground, { backgroundColor: animatedBackgroundColor }]}>
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView contentContainerStyle={styles.scrollViewContainer}>
+          <View style={styles.container}>
+            <ContributionGraph
+              values={attendanceData}
+              endDate={moment().endOf('month').toDate()}
+              numDays={105}
+              width={screenWidth}
+              height={220}
+              chartConfig={chartConfig}
+              accessor="count"
+            />
+            <View style={styles.summaryContainer}>
+              <Text style={styles.summaryHeader}>Attendance Summary</Text>
+              <View style={styles.cardWithShadow}>
+                <Text style={styles.summaryText}>{`${studentName} has attended classes with the following record:`}</Text>
+                <Text style={styles.summaryText}>{`On Time: ${attendanceSummary.onTime} times (${attendanceSummary.onTimePercentage}%)`}</Text>
+                <Text style={styles.summaryText}>{`Late: ${attendanceSummary.late} times (${attendanceSummary.latePercentage}%)`}</Text>
+                <Text style={styles.summaryText}>{`Absent: ${attendanceSummary.absent} times (${attendanceSummary.absentPercentage}%)`}</Text>
+              </View>
             </View>
+            <PieChart
+              data={[
+                {
+                  name: 'On Time',
+                  population: parseFloat(attendanceSummary.onTimePercentage),
+                  color: '#4CAF50',
+                  legendFontColor: '#333',
+                  legendFontSize: 14,
+                  legendFontStyle: 'normal',
+                },
+                {
+                  name: 'Late',
+                  population: parseFloat(attendanceSummary.latePercentage),
+                  color: '#FFC107',
+                  legendFontColor: '#333',
+                  legendFontSize: 14,
+                  legendFontStyle: 'normal',
+                },
+                {
+                  name: 'Absent',
+                  population: parseFloat(attendanceSummary.absentPercentage),
+                  color: '#F44336',
+                  legendFontColor: '#333',
+                  legendFontSize: 14,
+                  legendFontStyle: 'normal',
+                },
+              ]}
+              width={screenWidth}
+              height={220}
+              chartConfig={chartConfig}
+              accessor="population"
+              backgroundColor="transparent"
+              paddingLeft="15"
+              absolute
+              center={[10, 0]}
+            />
           </View>
-          <PieChart
-            data={[
-              {
-                name: 'On Time',
-                population: attendanceSummary.onTime,
-                color: '#4CAF50',
-                legendFontColor: '#333',
-                legendFontSize: 14,
-              },
-              {
-                name: 'Late',
-                population: attendanceSummary.late,
-                color: '#FFC107',
-                legendFontColor: '#333',
-                legendFontSize: 14,
-              },
-              {
-                name: 'Absent',
-                population: attendanceSummary.absent,
-                color: '#F44336',
-                legendFontColor: '#333',
-                legendFontSize: 14,
-              },
-            ]}
-            width={screenWidth}
-            height={220}
-            chartConfig={chartConfig}
-            accessor="population"
-            backgroundColor="transparent"
-            paddingLeft="15"
-            absolute
-          />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
+  animatedBackground: {
+    flex: 1,
+  },
   safeArea: {
     flex: 1,
   },
@@ -211,15 +249,15 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: 'center',
   },
-  card: {
+  cardWithShadow: {
     backgroundColor: '#ffffff',
     padding: 20,
     borderRadius: 10,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 8,
     marginBottom: 20,
   },
   summaryText: {
