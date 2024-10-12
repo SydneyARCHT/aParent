@@ -154,7 +154,7 @@ const CardComponent = ({ data, onClose, onView }) => {
             />
             <Text style={styles.modalTitle}>{assignmentName}</Text>
             {description ? <Text style={styles.modalDescription}>{description}</Text> : null}
-            <Text style={styles.modalText}>Assigned by: {teacherName}</Text>
+            <Text style={styles.modalText}>Class: {className}</Text>
             <Text style={styles.modalText}>Assigned on: {dateAssigned}</Text>
             <Text style={styles.modalText}>Due Date: {dueDate}</Text>
 
