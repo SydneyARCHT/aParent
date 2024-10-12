@@ -101,7 +101,7 @@ const CustomHeaderTitle = () => {
 
 
 const ResourcesScreen = () => {
-  const parentAvatar = 'https://i.pravatar.cc/300';
+  const parentAvatar = 'https://static1.thegamerimages.com/wordpress/wp-content/uploads/2022/01/Emo.png';
 
   return (
     <Drawer.Navigator drawerContent={(props) => <DrawerComponent {...props} />}>

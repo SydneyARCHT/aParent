@@ -22,7 +22,7 @@ const DrawerComponent = ({ navigation }) => {
           if (userData.userType === 'parent') {
             const firstName = userData.name.split(' ')[0];
             setParentFirstName(firstName || 'Parent'); 
-            setParentAvatar(userData.avatar || 'https://i.pravatar.cc/300'); 
+            setParentAvatar('https://static1.thegamerimages.com/wordpress/wp-content/uploads/2022/01/Emo.png'); 
           }
         }
       }
@@ -46,7 +46,7 @@ const DrawerComponent = ({ navigation }) => {
       <ScrollView>
         <Drawer.Section style={styles.drawerSection}>
           <View style={styles.userInfoSection}>
-            <Image source={{ uri: null }} style={styles.avatar} />
+            <Image source={{ uri: parentAvatar }} style={styles.avatar} />
             <Text style={styles.title}>{parentFirstName}</Text>
           </View>
           <Drawer.Item

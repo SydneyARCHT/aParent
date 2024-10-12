@@ -475,7 +475,7 @@ function ParentScreenContent() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
-        {generateRandomBubbles(15)}
+        {generateRandomBubbles(20)}
       </View>
 
       {/* Filter Icon */}
@@ -579,7 +579,7 @@ function ParentScreenContent() {
               <CalendarList
                 horizontal={true}
                 pagingEnabled={true}
-                calendarWidth={313.5}
+                calendarWidth={350}
                 calendarHeight={200}
                 minDate={'2024-08-01'}
                 maxDate={'2025-05-31'}
@@ -689,7 +689,7 @@ const CustomHeaderTitle = () => {
 };
 
 const ParentScreen = () => {
-  const parentAvatar = 'https://i.pravatar.cc/300';
+  const parentAvatar = 'https://static1.thegamerimages.com/wordpress/wp-content/uploads/2022/01/Emo.png';
 
   return (
     <Drawer.Navigator drawerContent={(props) => <DrawerComponent {...props} />}>
