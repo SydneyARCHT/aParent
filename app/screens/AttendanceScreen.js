@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, SafeAreaView, ScrollView, Dimensions, Text, Animated } from 'react-native';
+import { StyleSheet, View, SafeAreaView, ScrollView, Dimensions, Text, Animated, ActivityIndicator } from 'react-native';
 import { ContributionGraph, PieChart } from 'react-native-chart-kit';
 import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 import { auth, database } from '../config/firebaseConfig';
@@ -82,6 +82,7 @@ function AttendanceScreen() {
     absentPercentage: 0,
   });
   const [backgroundAnim] = useState(new Animated.Value(0));
+  const [loading, setLoading] = useState(true); // New loading state
 
   useEffect(() => {
     Animated.loop(
@@ -128,6 +129,7 @@ function AttendanceScreen() {
     if (!parentId) return;
 
     const fetchAttendanceData = async () => {
+      setLoading(true); // Start loading
       try {
         const parentDocRef = doc(database, 'parents', parentId);
         const parentStudentQuery = query(collection(database, 'parent_student'), where('parent', '==', parentDocRef));
@@ -137,6 +139,7 @@ function AttendanceScreen() {
         if (studentRefs.length === 0) {
           console.log('No students found for this parent.');
           setAttendanceData([]);
+          setLoading(false); // Stop loading
           return;
         }
 
@@ -203,11 +206,24 @@ function AttendanceScreen() {
         });
       } catch (error) {
         console.error('Error fetching attendance data: ', error);
+      } finally {
+        setLoading(false); // Stop loading
       }
     };
 
     fetchAttendanceData();
   }, [parentId]);
+
+  if (loading) {
+    // Show loading screen while fetching data
+    return (
+      <View style={styles.loadingContainer}>
+        {generateRandomBubbles(15)}
+        <ActivityIndicator size="large" color="#00ff00" />
+        <Text>Loading data...</Text>
+      </View>
+    );
+  }
 
   return (
     <Animated.View style={[styles.animatedBackground, { backgroundColor: animatedBackgroundColor }]}>
@@ -319,6 +335,11 @@ const styles = StyleSheet.create({
   },
   bubble: {
     position: 'absolute',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
