@@ -36,21 +36,23 @@ const AttendanceCardComponent = ({ data, onSeenUpdate }) => {
 
   const handleViewMore = async () => {
     setModalVisible(true);
-    if (onSeenUpdate && !seen) {
-      try {
-        const db = getFirestore();
-        const attendanceRef = doc(db, 'attendance', data.id);
-        await updateDoc(attendanceRef, { seen: true });
-        await onSeenUpdate(data.id);
-        setSeen(true); // Update local seen state after update
-      } catch (error) {
-        console.error('Error updating seen status:', error);
-      }
-    }
   };
 
   const handleCloseModal = () => {
     setModalVisible(false);
+    if (!seen) {
+      try {
+        const db = getFirestore();
+        const attendanceRef = doc(db, 'attendance', data.id);
+        updateDoc(attendanceRef, { seen: true });
+        setSeen(true);
+        if (onSeenUpdate) {
+          onSeenUpdate(data.id);
+        }
+      } catch (error) {
+        console.error('Error updating seen status:', error);
+      }
+    }
   };
 
   // Extract data with fallbacks

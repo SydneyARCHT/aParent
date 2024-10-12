@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
   },
   summaryText: {
     fontSize: 16,
-    marginVertical: center4,
+    marginVertical: 4,
     textAlign: '',
   },
 });

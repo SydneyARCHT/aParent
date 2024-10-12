@@ -36,21 +36,23 @@ const GradeCardComponent = ({ data, onSeenUpdate }) => {
 
   const handleViewMore = async () => {
     setModalVisible(true);
-    if (onSeenUpdate && !seen) {
-      try {
-        const db = getFirestore();
-        const gradeRef = doc(db, 'grades', data.id);
-        await updateDoc(gradeRef, { seen: true });
-        await onSeenUpdate(data.id);
-        setSeen(true); // Update local seen state after update
-      } catch (error) {
-        console.error('Error updating seen status:', error);
-      }
-    }
   };
 
   const handleCloseModal = () => {
     setModalVisible(false);
+    if (!seen) {
+      try {
+        const db = getFirestore();
+        const gradeRef = doc(db, 'grades', data.id);
+        updateDoc(gradeRef, { seen: true });
+        setSeen(true);
+        if (onSeenUpdate) {
+          onSeenUpdate(data.id);
+        }
+      } catch (error) {
+        console.error('Error updating seen status:', error);
+      }
+    }
   };
 
   // Extract data with fallbacks
@@ -187,7 +189,6 @@ const styles = StyleSheet.create({
   icon: {
     backgroundColor: '#AE5BFF',
     borderWidth: 2,
-    
   },
   title: {
     fontSize: 16,
@@ -217,22 +218,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-
   },
-  classNameText: {
-    fontSize: 14,
-    color: '#141212',
-    marginRight: 10, // Adds space between the class name and the date
-    alignSelf: 'center', // Aligns the text vertically with the button
-    fontWeight: '600',
-  },
-  dateText: {
-    fontSize: 14,
-    color: '#888888',
-    marginRight: 10, // Adds space between the date and the button
-    alignSelf: 'center', // Aligns the text vertically with the button
-  },
-  
   modalContent: {
     width: width * 0.8,
     backgroundColor: 'white',
@@ -279,6 +265,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 16,
   },
+  dateText: {
+    marginTop:15,
+    marginRight: 10,
+  }
 });
 
 export default GradeCardComponent;

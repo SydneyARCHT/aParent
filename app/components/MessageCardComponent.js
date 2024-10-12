@@ -68,21 +68,23 @@ const MessageCardComponent = ({ data, onClose, onSeenUpdate }) => {
 
   const handleViewMore = async () => {
     setModalVisible(true);
-    if (onSeenUpdate && !seen) {
-      try {
-        const db = getFirestore();
-        const messageRef = doc(db, `chats/${data.chatId}/messages`, data.id);
-        await updateDoc(messageRef, { seen: true });
-        await onSeenUpdate(data.id);
-        setSeen(true);
-      } catch (error) {
-        console.error('Error updating seen status:', error);
-      }
-    }
   };
 
   const handleCloseModal = () => {
     setModalVisible(false);
+    if (!seen) {
+      try {
+        const db = getFirestore();
+        const messageRef = doc(db, `chats/${data.chatId}/messages`, data.id);
+        updateDoc(messageRef, { seen: true });
+        setSeen(true);
+        if (onSeenUpdate) {
+          onSeenUpdate(data.id);
+        }
+      } catch (error) {
+        console.error('Error updating seen status:', error);
+      }
+    }
   };
 
   const handleClosePress = () => {
@@ -97,8 +99,8 @@ const MessageCardComponent = ({ data, onClose, onSeenUpdate }) => {
     : 'No timestamp available';
   const avatarUri = data.avatarUri || 'https://via.placeholder.com/50';
 
-  const primaryColor = '#141212'; 
-  const secondaryColor = '#8FFFBD'; 
+  const primaryColor = '#141212';
+  const secondaryColor = '#8FFFBD';
 
   return (
     <>
@@ -321,8 +323,8 @@ const styles = StyleSheet.create({
   timestampText: {
     fontSize: 14,
     color: '#888888',
-    marginRight: 12, // Add some space between the timestamp and the button
-    alignSelf: 'center', // Aligns the text vertically with the button
+    marginRight: 12,
+    alignSelf: 'center',
   },
 });
 
