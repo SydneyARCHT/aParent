@@ -5,7 +5,7 @@ import { signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, database } from '../config/firebaseConfig';
 
-const DrawerComponent = () => {
+const DrawerComponent = ({ navigation }) => {
   const [active, setActive] = useState('');
   const [parentFirstName, setParentFirstName] = useState('');
   const [parentAvatar, setParentAvatar] = useState('');
@@ -22,7 +22,7 @@ const DrawerComponent = () => {
           if (userData.userType === 'parent') {
             const firstName = userData.name.split(' ')[0];
             setParentFirstName(firstName || 'Parent'); 
-            setParentAvatar(userData.avatar || 'https://i.pravatar.cc/300'); 
+            setParentAvatar('https://static1.thegamerimages.com/wordpress/wp-content/uploads/2022/01/Emo.png'); 
           }
         }
       }
@@ -41,28 +41,12 @@ const DrawerComponent = () => {
     }
   };
 
-  const handleProfileAlert = () => {
-    Alert.alert(
-      'Profile',
-      'Surprise, this section does not exist yet!',
-      [{ text: 'OK' }]
-    );
-  };
-
-  const handleAccountSettingsAlert = () => {
-    Alert.alert(
-      'Account Settings',
-      'Neither does this one.',
-      [{ text: 'OK' }]
-    );
-  };
-
   return (
     <SafeAreaView style={styles.drawerContainer}>
       <ScrollView>
         <Drawer.Section style={styles.drawerSection}>
           <View style={styles.userInfoSection}>
-            <Image source={{ uri: null }} style={styles.avatar} />
+            <Image source={{ uri: parentAvatar }} style={styles.avatar} />
             <Text style={styles.title}>{parentFirstName}</Text>
           </View>
           <Drawer.Item
@@ -71,7 +55,7 @@ const DrawerComponent = () => {
             active={active === 'first'}
             onPress={() => {
               setActive('first');
-              handleProfileAlert();
+              navigation.navigate('FirstScreen');
             }}
           />
           <Drawer.Item
@@ -80,7 +64,7 @@ const DrawerComponent = () => {
             active={active === 'second'}
             onPress={() => {
               setActive('second');
-              handleAccountSettingsAlert();
+              navigation.navigate('SecondScreen');
             }}
           />
           <Drawer.Item

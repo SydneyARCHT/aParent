@@ -1,7 +1,58 @@
-import React, { useState, useLayoutEffect } from 'react';
-import { View, FlatList, Text, StyleSheet, SafeAreaView } from 'react-native';
+import React, { useState, useLayoutEffect, useRef, useEffect } from 'react';
+import { View, FlatList, Text, StyleSheet, SafeAreaView, Animated, Dimensions } from 'react-native';
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { database } from '../config/firebaseConfig';
+
+// Colors matching the letters
+const bubbleColors = ['#5BFF9F', '#AE5BFF', '#FF6D5B', '#FFC85B', '#5DEFFF'];
+
+// Helper function to generate random bubbles
+const generateRandomBubbles = (count) => {
+  return Array.from({ length: count }).map((_, index) => {
+    return <AnimatedBubble key={index} />;
+  });
+};
+
+const AnimatedBubble = () => {
+  const { width, height } = Dimensions.get('window');
+  const size = Math.random() * 100 + 50; // Random size between 50 and 150
+  const backgroundColor = bubbleColors[Math.floor(Math.random() * bubbleColors.length)] + '50'; // Random color with transparency
+
+  // Generate a random starting position
+  const initialX = Math.random() * width;
+  const initialY = Math.random() * height;
+  const position = useRef(new Animated.ValueXY({ x: initialX, y: initialY })).current;
+
+  useEffect(() => {
+    const moveBubble = () => {
+      Animated.timing(position, {
+        toValue: {
+          x: position.x._value - Math.random() * 100 - 50, // Move leftward
+          y: position.y._value - Math.random() * 100 - 50, // Move upward
+        },
+        duration: Math.random() * 4000 + 3000, // Random duration between 3s and 7s
+        useNativeDriver: false,
+      }).start(() => moveBubble()); // Start again for continuous movement
+    };
+
+    moveBubble();
+  }, [position]);
+
+  return (
+    <Animated.View
+      style={[
+        styles.bubble,
+        {
+          width: size,
+          height: size,
+          backgroundColor,
+          borderRadius: size / 2,
+          transform: position.getTranslateTransform(),
+        },
+      ]}
+    />
+  );
+};
 
 function AssignmentsScreen() {
   const [assignments, setAssignments] = useState([]);
@@ -40,6 +91,7 @@ function AssignmentsScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      {generateRandomBubbles(20)}
       <FlatList
         data={assignments}
         keyExtractor={(item) => item.id}
@@ -69,6 +121,9 @@ const styles = StyleSheet.create({
   title: {
     fontWeight: 'bold',
     fontSize: 18,
+  },
+  bubble: {
+    position: 'absolute',
   },
 });
 

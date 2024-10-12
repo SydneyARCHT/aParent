@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ImageBackground, FlatList, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, SafeAreaView } from 'react-native';
 
 const behaviorData = [
   {
@@ -7,28 +7,28 @@ const behaviorData = [
     title: 'Positive Mindset',
     subtitle: 'Satisfactory',
     position: 'topLeftImage',
-    image: 'https://cdn.mos.cms.futurecdn.net/xaycNDmeyxpHDrPqU6LmaD.jpg',
+    color: '#FFCDD2',
   },
   {
     id: '2',
     title: 'Thinking Skills',
     subtitle: 'Needs Improvement',
     position: 'topRightImage',
-    image: 'https://cdn.mos.cms.futurecdn.net/xaycNDmeyxpHDrPqU6LmaD.jpg',
+    color: '#BBDEFB',
   },
   {
     id: '3',
     title: 'Community Mindset',
     subtitle: 'Good',
     position: 'bottomLeftImage',
-    image: 'https://cdn.mos.cms.futurecdn.net/xaycNDmeyxpHDrPqU6LmaD.jpg',
+    color: '#C8E6C9',
   },
   {
     id: '4',
     title: 'Interpersonal Skills',
     subtitle: 'Average',
     position: 'bottomRightImage',
-    image: 'https://cdn.mos.cms.futurecdn.net/xaycNDmeyxpHDrPqU6LmaD.jpg',
+    color: '#FFF9C4',
   },
 ];
 
@@ -37,17 +37,18 @@ const BehaviorScreen = () => {
     const positionStyle = styles[item.position] || {};
 
     return (
-      <ImageBackground
-        source={{ uri: item.image }}
-        style={[styles.quadrant, positionStyle]}
-        imageStyle={[styles.imageStyle, positionStyle]}
-        resizeMode="cover"
+      <View
+        style={[
+          styles.quadrant,
+          positionStyle,
+          { backgroundColor: item.color },
+        ]}
       >
         <View style={styles.overlay}>
           <Text style={styles.quadrantTitle}>{item.title}</Text>
           <Text style={styles.quadrantSubtitle}>{item.subtitle}</Text>
         </View>
-      </ImageBackground>
+      </View>
     );
   };
 
@@ -99,9 +100,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  imageStyle: {
-    borderRadius: 20,
-  },
   overlay: {
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
     padding: 10,
@@ -146,6 +144,3 @@ const styles = StyleSheet.create({
 });
 
 export default BehaviorScreen;
-
-
-

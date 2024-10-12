@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, SafeAreaView, ScrollView, Dimensions, Text } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { StyleSheet, View, SafeAreaView, ScrollView, Dimensions, Text, Animated } from 'react-native';
 import { ContributionGraph, PieChart } from 'react-native-chart-kit';
 import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 import { auth, database } from '../config/firebaseConfig';
@@ -18,6 +18,57 @@ const chartConfig = {
   useShadowColorFromDataset: false,
 };
 
+// Colors for the animated bubbles
+const bubbleColors = ['#5BFF9F', '#AE5BFF', '#FF6D5B', '#FFC85B', '#5DEFFF'];
+
+// Helper function to generate random bubbles
+const generateRandomBubbles = (count) => {
+  return Array.from({ length: count }).map((_, index) => {
+    return <AnimatedBubble key={index} />;
+  });
+};
+
+const AnimatedBubble = () => {
+  const { width, height } = Dimensions.get('window');
+  const size = Math.random() * 100 + 50; // Random size between 50 and 150
+  const backgroundColor = bubbleColors[Math.floor(Math.random() * bubbleColors.length)] + '50'; // Random color with transparency
+
+  // Generate a random starting position
+  const initialX = Math.random() * width;
+  const initialY = Math.random() * height;
+  const position = useRef(new Animated.ValueXY({ x: initialX, y: initialY })).current;
+
+  useEffect(() => {
+    const moveBubble = () => {
+      Animated.timing(position, {
+        toValue: {
+          x: position.x._value - Math.random() * 100 - 50, // Move leftward
+          y: position.y._value - Math.random() * 100 - 50, // Move upward
+        },
+        duration: Math.random() * 4000 + 3000, // Random duration between 3s and 7s
+        useNativeDriver: false,
+      }).start(() => moveBubble()); // Start again for continuous movement
+    };
+
+    moveBubble();
+  }, [position]);
+
+  return (
+    <Animated.View
+      style={[
+        styles.bubble,
+        {
+          width: size,
+          height: size,
+          backgroundColor,
+          borderRadius: size / 2,
+          transform: position.getTranslateTransform(),
+        },
+      ]}
+    />
+  );
+};
+
 function AttendanceScreen() {
   const [parentId, setParentId] = useState(null);
   const [studentName, setStudentName] = useState('Your child');
@@ -29,6 +80,29 @@ function AttendanceScreen() {
     onTimePercentage: 0,
     latePercentage: 0,
     absentPercentage: 0,
+  });
+  const [backgroundAnim] = useState(new Animated.Value(0));
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(backgroundAnim, {
+          toValue: 1,
+          duration: 3000,
+          useNativeDriver: false,
+        }),
+        Animated.timing(backgroundAnim, {
+          toValue: 0,
+          duration: 3000,
+          useNativeDriver: false,
+        }),
+      ])
+    ).start();
+  }, [backgroundAnim]);
+
+  const animatedBackgroundColor = backgroundAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['#F3E5F5', '#E8F5E9'],
   });
 
   useEffect(() => {
@@ -136,70 +210,76 @@ function AttendanceScreen() {
   }, [parentId]);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.scrollViewContainer}>
-        <View style={styles.container}>
-          <ContributionGraph
-            values={attendanceData}
-            endDate={moment().endOf('month').toDate()}
-            numDays={105}
-            width={screenWidth}
-            height={220}
-            chartConfig={chartConfig}
-            accessor="count"
-          />
-          <View style={styles.summaryContainer}>
-            <Text style={styles.summaryHeader}>Attendance Summary</Text>
-            <View style={styles.cardWithShadow}>
-              <Text style={styles.summaryText}>{`${studentName} has attended classes with the following record:`}</Text>
-              <Text style={styles.summaryText}>{`On Time: ${attendanceSummary.onTime} times (${attendanceSummary.onTimePercentage}%)`}</Text>
-              <Text style={styles.summaryText}>{`Late: ${attendanceSummary.late} times (${attendanceSummary.latePercentage}%)`}</Text>
-              <Text style={styles.summaryText}>{`Absent: ${attendanceSummary.absent} times (${attendanceSummary.absentPercentage}%)`}</Text>
+    <Animated.View style={[styles.animatedBackground, { backgroundColor: animatedBackgroundColor }]}>
+      <SafeAreaView style={styles.safeArea}>
+        {generateRandomBubbles(15)}
+        <ScrollView contentContainerStyle={styles.scrollViewContainer}>
+          <View style={styles.container}>
+            <ContributionGraph
+              values={attendanceData}
+              endDate={moment().endOf('month').toDate()}
+              numDays={105}
+              width={screenWidth}
+              height={220}
+              chartConfig={chartConfig}
+              accessor="count"
+            />
+            <View style={styles.summaryContainer}>
+              <Text style={styles.summaryHeader}>Attendance Summary</Text>
+              <View style={styles.cardWithShadow}>
+                <Text style={styles.summaryText}>{`${studentName} has attended classes with the following record:`}</Text>
+                <Text style={styles.summaryText}>{`On Time: ${attendanceSummary.onTime} times (${attendanceSummary.onTimePercentage}%)`}</Text>
+                <Text style={styles.summaryText}>{`Late: ${attendanceSummary.late} times (${attendanceSummary.latePercentage}%)`}</Text>
+                <Text style={styles.summaryText}>{`Absent: ${attendanceSummary.absent} times (${attendanceSummary.absentPercentage}%)`}</Text>
+              </View>
             </View>
+            <PieChart
+              data={[
+                {
+                  name: 'On Time',
+                  population: parseFloat(attendanceSummary.onTimePercentage),
+                  color: '#4CAF50',
+                  legendFontColor: '#333',
+                  legendFontSize: 14,
+                  legendFontStyle: 'normal',
+                },
+                {
+                  name: 'Late',
+                  population: parseFloat(attendanceSummary.latePercentage),
+                  color: '#FFC107',
+                  legendFontColor: '#333',
+                  legendFontSize: 14,
+                  legendFontStyle: 'normal',
+                },
+                {
+                  name: 'Absent',
+                  population: parseFloat(attendanceSummary.absentPercentage),
+                  color: '#F44336',
+                  legendFontColor: '#333',
+                  legendFontSize: 14,
+                  legendFontStyle: 'normal',
+                },
+              ]}
+              width={screenWidth}
+              height={220}
+              chartConfig={chartConfig}
+              accessor="population"
+              backgroundColor="transparent"
+              paddingLeft="15"
+              absolute
+              center={[10, 0]}
+            />
           </View>
-          <PieChart
-            data={[
-              {
-                name: 'On Time',
-                population: parseFloat(attendanceSummary.onTimePercentage),
-                color: '#4CAF50',
-                legendFontColor: '#333',
-                legendFontSize: 14,
-                legendFontStyle: 'normal',
-              },
-              {
-                name: 'Late',
-                population: parseFloat(attendanceSummary.latePercentage),
-                color: '#FFC107',
-                legendFontColor: '#333',
-                legendFontSize: 14,
-                legendFontStyle: 'normal',
-              },
-              {
-                name: 'Absent',
-                population: parseFloat(attendanceSummary.absentPercentage),
-                color: '#F44336',
-                legendFontColor: '#333',
-                legendFontSize: 14,
-                legendFontStyle: 'normal',
-              },
-            ]}
-            width={screenWidth}
-            height={220}
-            chartConfig={chartConfig}
-            accessor="population"
-            backgroundColor="transparent"
-            paddingLeft="15"
-            absolute
-            center={[10, 0]}
-          />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
+  animatedBackground: {
+    flex: 1,
+  },
   safeArea: {
     flex: 1,
   },
@@ -235,7 +315,10 @@ const styles = StyleSheet.create({
   summaryText: {
     fontSize: 16,
     marginVertical: 4,
-    textAlign: '',
+    textAlign: 'center',
+  },
+  bubble: {
+    position: 'absolute',
   },
 });
 
