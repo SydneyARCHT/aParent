@@ -167,8 +167,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   greenDot: {
-    width: 16,
-    height: 16,
+    width: 15,
+    height: 15,
     borderRadius: 20,
     backgroundColor: '#00FF00',
     marginLeft: 'auto',

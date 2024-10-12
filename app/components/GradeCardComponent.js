@@ -166,8 +166,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   greenDot: {
-    width: 20,
-    height: 20,
+    width: 15,
+    height: 15,
     borderRadius: 10,
     backgroundColor: '#00FF00',
     position: 'absolute',
