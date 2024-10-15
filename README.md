@@ -15,17 +15,16 @@ aParent was built with the problem statement in mind of increasing ease of commu
 
 - Clone The repository into a folder of your choice
     - Inside your preffered directory folder run the following commands: 
-        \`\`\`
+        `
         git clone https://github.com/SydneyARCHT/aParent.git
         cd aParent
         npm install
-        \`\`\`
+        `
 
 - Install The Backend Dependencies
-    \`\`\`
-    cd node_backend
-    npm install
-    \`\`\`
+    
+    `cd node_backend
+    npm install`
 
 - Once Dependencies have been installed in either the Apple App Store or the Google Play Store install "Expo Go"
 
